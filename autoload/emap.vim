@@ -46,6 +46,10 @@ function! s:parse_error(msg) "{{{
     return 'parse error: ' . a:msg
 endfunction "}}}
 
+function! s:argument_error(msg) "{{{
+    return 'argument error: ' . a:msg
+endfunction "}}}
+
 
 " For ex commands
 function! emap#load() "{{{
@@ -269,14 +273,22 @@ endfunction "}}}
 
 " Set SID to convert "<SID>" to "<SNR>...".
 function! emap#set_sid(sid) "{{{
-    let s:vimrc_sid = a:sid + 0
+    let sid = a:sid + 0
+    if sid ==# 0
+        echoerr s:argument_error("Invalid SID.")
+        return
+    endif
+    let s:vimrc_sid = sid
 endfunction "}}}
 
 function! emap#set_sid_from_sfile(sfile) "{{{
     let sid = s:get_sid_from_sfile(a:sfile)
-    if sid != ''
-        call emap#set_sid(sid)
+    if sid == ''
+        let msg = printf("emap#set_sid_from_sfile(): '%s' is not loaded yet.", a:sfile)
+        echoerr s:argument_error(msg)
+        return
     endif
+    call emap#set_sid(sid)
 endfunction "}}}
 
 function! s:get_sid_from_sfile(sfile) "{{{
