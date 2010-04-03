@@ -244,7 +244,17 @@ function! s:parse_args(q_args) "{{{
     let [lhs, q_args] = s:get_one_arg_from_q_args(q_args)
 
     let q_args = s:skip_spaces(q_args)
-    let rhs = q_args
+    if get(options, 'expr', 0)
+        let rhs = q_args
+    else
+        " Ignore whitespaces.
+        let rhs = ''
+        while q_args != ''
+            let q_args = s:skip_spaces(q_args)
+            let [_, q_args] = s:get_one_arg_from_q_args(q_args)
+            let rhs .= _
+        endwhile
+    endif
 
     " Assert lhs != ''
     " Assert rhs != ''
