@@ -39,26 +39,44 @@ function! s:is_whitespace(s) "{{{
     return a:s =~# '^[ \t]\+$'
 endfunction "}}}
 
-function! s:all_of(elem, list) "{{{
-    let list_p = type(a:elem) == type([])
-
-    for i in list_p ? a:elem : a:list
-        if list_p ? s:all_of(i, a:list) : i !=# a:elem
-            return 0
-        endif
-    endfor
-    return 1
+function! s:has_elem(list, elem) "{{{
+    return !empty(filter(copy(a:list), 'v:val ==# a:elem'))
 endfunction "}}}
 
-function! s:one_of(elem, list) "{{{
-    let list_p = type(a:elem) == type([])
+function! s:has_all_of(list, elem) "{{{
+    " a:elem is List:
+    "   a:list has a:elem[0] && a:list has a:elem[1] && ...
+    " a:elem is not List:
+    "   a:list has a:elem
 
-    for i in list_p ? a:elem : a:list
-        if list_p ? s:one_of(i, a:list) : i ==# a:elem
-            return 1
-        endif
-    endfor
-    return 0
+    if type(a:elem) == type([])
+        for i in a:elem
+            if !s:has_elem(a:list, i)
+                return 0
+            endif
+        endfor
+        return 1
+    else
+        return s:has_elem(a:list, a:elem)
+    endif
+endfunction "}}}
+
+function! s:has_one_of(list, elem) "{{{
+    " a:elem is List:
+    "   a:list has a:elem[0] || a:list has a:elem[1] || ...
+    " a:elem is not List:
+    "   a:list has a:elem
+
+    if type(a:elem) == type([])
+        for i in a:elem
+            if s:has_elem(a:list, i)
+                return 1
+            endif
+        endfor
+        return 0
+    else
+        return s:has_elem(a:list, a:elem)
+    endif
 endfunction "}}}
 
 " Errors
@@ -210,7 +228,7 @@ function! s:opt_has(options, name) "{{{
 endfunction "}}}
 
 function! s:pragma_has(options, name) "{{{
-    return s:one_of(a:name, get(a:options, 'pragmas', []))
+    return s:has_elem(get(a:options, 'pragmas', []), a:name)
 endfunction "}}}
 
 function! s:is_vim_map_option(map) "{{{
@@ -400,7 +418,7 @@ function! emap#available_pragmas() "{{{
 endfunction "}}}
 
 function! s:is_valid_pragmas(pragmas) "{{{
-    return s:all_of(a:pragmas, emap#available_pragmas())
+    return s:has_all_of(emap#available_pragmas(), a:pragmas)
 endfunction "}}}
 
 function! s:convert_pragmas(pragmas) "{{{
