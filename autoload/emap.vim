@@ -83,6 +83,15 @@ function! emap#load() "{{{
     \   -nargs=+
     \   Map
     \   execute s:cmd_map(<q-args>)
+
+    command!
+    \   -bar -nargs=+
+    \   SetPragmas
+    \   call emap#set_pragmas([<f-args>])
+    command!
+    \   -bar -nargs=+
+    \   UnsetPragmas
+    \   call emap#unset_pragmas([<f-args>])
 endfunction "}}}
 
 function! s:cmd_defmap(q_args) "{{{
