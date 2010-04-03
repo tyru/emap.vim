@@ -38,6 +38,10 @@ function! s:skip_spaces(q_args) "{{{
     return substitute(a:q_args, '^\s*', '', '')
 endfunction "}}}
 
+function! s:is_whitespace(s) "{{{
+    return a:s =~# '^[ \t]\+$'
+endfunction "}}}
+
 function! s:parse_error(msg) "{{{
     return 'parse error: ' . a:msg
 endfunction "}}}
@@ -69,7 +73,7 @@ function! s:cmd_defmap(q_args) "{{{
     endtry
 
     let ret = []
-    for m in s:each_char(modes)
+    for m in filter(s:each_char(modes), '!s:is_whitespace(v:val)')
         call add(ret,
         \   s:get_map_excmd(m, options, s:sid_named_map(lhs), s:convert_map(rhs, m)))
     endfor
@@ -91,7 +95,7 @@ function! s:cmd_map(q_args) "{{{
     endtry
 
     let ret = []
-    for m in s:each_char(modes)
+    for m in filter(s:each_char(modes), '!s:is_whitespace(v:val)')
         call add(ret,
         \   s:get_map_excmd(m, options, s:convert_map(lhs, m), s:convert_map(rhs, m)))
     endfor
@@ -180,7 +184,7 @@ endfunction "}}}
 " Parser for ex commands.
 function! s:get_modes(q_args) "{{{
     let [arg, rest] = s:get_one_arg_from_q_args(a:q_args)
-    let modes = matchstr(arg, '^\[\zs[nvoiclxs]\+\ze\]')
+    let modes = matchstr(arg, '^\[\zs[nvoiclxs \t]\+\ze\]')
     " Assert modes != ''
     return [modes, rest]
 endfunction "}}}
