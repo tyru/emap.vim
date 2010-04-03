@@ -110,7 +110,7 @@ function! s:cmd_defmap(q_args) "{{{
         \               m,
         \               map_info.options,
         \               s:sid_named_map(map_info.lhs),
-        \               s:convert_map(map_info.rhs, m)))
+        \               s:convert_map(map_info.options, map_info.rhs, m)))
     endfor
 
     " Decho ':DefMap'
@@ -134,8 +134,8 @@ function! s:cmd_map(q_args) "{{{
         call add(ret, s:get_map_excmd(
         \               m,
         \               map_info.options,
-        \               s:convert_map(map_info.lhs, m),
-        \               s:convert_map(map_info.rhs, m)))
+        \               s:convert_map(map_info.options, map_info.lhs, m),
+        \               s:convert_map(map_info.options, map_info.rhs, m)))
     endfor
 
     " Decho ':Map'
@@ -155,9 +155,17 @@ function! s:convert_options(options) "{{{
     \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
 endfunction "}}}
 
-function! s:convert_map(lhs, ...) "{{{
+function! s:convert_map(options, lhs, ...) "{{{
     " TODO Parse nested key notation.
-    return join(map(s:split_to_keys(a:lhs), 'call("s:eval_special_key", [v:val] + a:000)'), '')
+    let keys = s:split_to_keys(a:lhs)
+
+    " Ignore whitespaces.
+    if s:pragma_has(a:options, s:PRAGMA_IGNORE_SPACES) && !s:opt_has(a:options, 'expr')
+        let whitespaces = '^[ \t]\+$'
+        let keys = filter(keys, 'v:val !~# whitespaces')
+    endif
+
+    return join(map(keys, 'call("s:eval_special_key", [v:val] + a:000)'), '')
 endfunction "}}}
 
 function! s:split_to_keys(map)  "{{{
@@ -300,19 +308,8 @@ function! s:parse_args(q_args) "{{{
     let q_args = s:skip_spaces(q_args)
     let [lhs, q_args] = s:get_one_arg_from_q_args(q_args)
 
-    " TODO Do ignore spaces at s:convert_map().
     let q_args = s:skip_spaces(q_args)
-    if s:pragma_has(options, s:PRAGMA_IGNORE_SPACES) && !s:opt_has(options, 'expr')
-        " Ignore whitespaces.
-        let rhs = ''
-        while q_args != ''
-            let q_args = s:skip_spaces(q_args)
-            let [_, q_args] = s:get_one_arg_from_q_args(q_args)
-            let rhs .= _
-        endwhile
-    else
-        let rhs = q_args
-    endif
+    let rhs = q_args
 
     " Assert lhs != ''
     " Assert rhs != ''
