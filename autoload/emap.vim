@@ -19,9 +19,59 @@ set cpo&vim
 " Usually, <...> expression is expanded to
 " "<SID>@..." ("..." means given name).
 " But `macro` is expanded when parsing arguments
-" of ex commands like :DefMap, :Map.
+" of ex commands like `:DefMap`, `:Map`.
+" - `:DefMap` defines mapping to take arguments.
+"
+"     DefMap [n] -nargs=1 yank y <args>
+"     " This is converted to `y $`.
+"     Map    [n]          <yank $>
+"
 " - `:Unmap` ?
 " - `:DefMacroMap`
+" - `leader-macro` pragma
+" - `:DefOwnMap`
+"
+"     DefOwnMap FnMap Map [<modes>] <options> <lhs> :<C-u>call <rhs><CR>
+"     DefOwnMap ObjMap [<mode n>vo] <options> <lhs> <rhs>
+"
+"     DefOwnMap -function FnMap <SID>cmd_fnmap
+"     function! s:cmd_fnmap(map_info)
+"         let ret = []
+"         for m in split(map_info.modes, '\zs')
+"             call add(ret,
+"             \     s:get_map_excmd(
+"             \         m,
+"             \         map_info.options,
+"             \         map_info.lhs,
+"             \         map_info.rhs))
+"         endfor
+"         return ret
+"     endfunction
+"
+"     DefOwnMap ArpeggioMap <execute <let-each-mode [m] Arpeggio <get-map-ex <m>> <lhs> <rhs>>>
+"
+"     " `-eval-function` is too long.
+"     DefOwnMap -eval-function ArpeggioMap <SID>cmd_arpeggio()
+"     function! s:cmd_arpeggio()
+"         <execute <let-each-mode [m] Arpeggio <get-map-ex <m>> <lhs> <rhs>>>
+"     endfunction
+"
+" - Plugin feature
+"   - Plugin can change
+"     - modes
+"     - options
+"     - lhs
+"     - rhs
+"   - Plugin which I'm thinking
+"     - emap-repeat
+"     - emap-candidates
+"     - emap-each
+"     - emap-arpeggio
+"     - emap-submode
+"     - emap-altercmd
+"     - ...
+" - :autocmd like hook feature.
+"   - When {before|after|both} {lhs|rhs|both} is converted
 
 " Script variables {{{
 let s:PRAGMA_IGNORE_SPACES = 'ignore-spaces'
