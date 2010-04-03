@@ -58,12 +58,13 @@ function! emap#load() "{{{
 endfunction "}}}
 
 function! s:cmd_defmap(q_args) "{{{
-    Assert len(a:q_args) >= 3
+    " Assert len(a:q_args) >= 3
 
     try
         let [modes, options, lhs, rhs] = s:parse_args(a:q_args)
     catch /^parse error:/
-        ShowStackTrace
+        " ShowStackTrace
+        echoerr v:exception v:throwpoint
         return
     endtry
 
@@ -84,7 +85,8 @@ function! s:cmd_map(q_args) "{{{
     try
         let [modes, options, lhs, rhs] = s:parse_args(a:q_args)
     catch /^parse error:/
-        ShowStackTrace
+        " ShowStackTrace
+        echoerr v:exception v:throwpoint
         return
     endtry
 
@@ -137,7 +139,7 @@ function! s:eval_special_key(map, ...) "{{{
         let exists_named_map =
         \   call('maparg', [s:sid_named_map(named_map)] + a:000) != ''
 
-        Assert named_map != ''
+        " Assert named_map != ''
 
         if a:map ==# '<SID>'
             return s:snr_prefix()
@@ -167,7 +169,7 @@ endfunction "}}}
 function! s:get_modes(q_args) "{{{
     let [arg, rest] = s:get_one_arg_from_q_args(a:q_args)
     let modes = matchstr(arg, '^\[\zs[nvoiclxs]\+\ze\]')
-    Assert modes != ''
+    " Assert modes != ''
     return [modes, rest]
 endfunction "}}}
 
@@ -222,8 +224,8 @@ function! s:parse_args(q_args) "{{{
     let q_args = s:skip_spaces(q_args)
     let rhs = q_args
 
-    Assert lhs != ''
-    Assert rhs != ''
+    " Assert lhs != ''
+    " Assert rhs != ''
 
     return [modes, options, lhs, rhs]
 endfunction "}}}
