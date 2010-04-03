@@ -8,6 +8,20 @@ set cpo&vim
 " TODO
 " - Nested <...> expression.
 " - To be hackable.
+" - Add "$" prefix to `macro`.
+" `macro` means expression to be expanded
+" before doing mapping like lisp macro.
+"
+" e.g.:
+"   DefMap [n] -noremap orig q
+"   Map [n] <orig><$lhs> <$lhs>
+"
+" Usually, <...> expression is expanded to
+" "<SID>@..." ("..." means given name).
+" But `macro` is expanded when parsing arguments
+" of ex commands like :DefMap, :Map.
+" - `:Unmap` ?
+" - `:DefMacroMap`
 
 " Script variables {{{
 let s:vimrc_sid = -1
