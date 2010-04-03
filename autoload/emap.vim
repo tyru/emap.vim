@@ -145,13 +145,20 @@ function! s:eval_special_key(map, ...) "{{{
             return s:snr_prefix()
         elseif evaled !=# a:map
             " Built-in key notation (:help key-notation)
-            " XXX: <EOL> is not changed?
+            "
+            " XXX: Some keys are not changed?
             " ("\<EOL>" == "<EOL>")
-            return evaled
+            "
+            " - <EOL>
+            " - <Nop>
+            "
+            return a:map
         elseif exists_named_map
             " Found named mapping.
+            " NOTE: Return "<SID>" not "<SNR>...".
             return s:sid_named_map(named_map)
         else
+            " Other character like 'a', 'b', ...
             return a:map
         endif
     else
