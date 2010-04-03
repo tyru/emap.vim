@@ -151,6 +151,104 @@ function! s:cmd_map(q_args) "{{{
     return join(ret, '|')
 endfunction "}}}
 
+
+" Parser for ex commands.
+function! s:parse_modes(q_args) "{{{
+    let [arg, rest] = s:parse_one_arg_from_q_args(a:q_args)
+    let modes = matchstr(arg, '^\[\zs[nvoiclxs \t]\+\ze\]')
+    " Assert modes != ''
+    return [modes, rest]
+endfunction "}}}
+
+function! s:parse_options(q_args) "{{{
+    let q_args = a:q_args
+    let opt = {}
+
+    while !empty(q_args)
+        let [a, rest] = s:parse_one_arg_from_q_args(q_args)
+        if a[0] !=# '-'
+            break
+        endif
+        let q_args = rest
+
+        if a ==# '--'
+            break
+        elseif a[0] ==# '-'
+            if a[1:] ==# 'expr'
+                let opt.expr = 1
+            elseif a[1:] ==# 'noremap'
+                let opt.noremap = 1
+            elseif a[1:] ==# 'buffer'
+                let opt.buffer = 1
+            elseif a[1:] ==# 'silent'
+                let opt.silent = 1
+            elseif a[1:] ==# 'special'
+                let opt.special = 1
+            elseif a[1:] ==# 'script'
+                let opt.script = 1
+            elseif a[1:] ==# 'unique'
+                let opt.unique = 1
+            else
+                throw s:parse_error(printf("unknown option '%s'.", a))
+            endif
+        endif
+    endwhile
+
+    return [opt, q_args]
+endfunction "}}}
+
+function! s:add_pragmas(options) "{{{
+    return extend(copy(a:options), {
+    \   'pragmas': filter(keys(s:pragmas), 's:pragmas[v:val]')
+    \}, 'keep')
+endfunction "}}}
+
+function! s:parse_one_arg_from_q_args(q_args) "{{{
+    let arg = s:skip_spaces(a:q_args)
+    let head = matchstr(arg, '^.\{-}[^\\]\ze\([ \t]\|$\)')
+    let rest = strpart(arg, strlen(head))
+    return [head, rest]
+endfunction "}}}
+
+function! s:opt_has(options, name) "{{{
+    return get(a:options, a:name, 0)
+endfunction "}}}
+
+function! s:pragma_has(options, name) "{{{
+    return s:one_of(a:name, get(a:options, 'pragmas', []))
+endfunction "}}}
+
+function! s:is_vim_map_option(map) "{{{
+    return a:map =~# '^<\(expr\|buffer\|silent\|special\|script\|unique\)>$'
+endfunction "}}}
+
+function! s:parse_args(q_args) "{{{
+    " NOTE: Currently :DefMap and :Map arguments are the same.
+
+    let q_args = a:q_args
+
+    let q_args = s:skip_spaces(q_args)
+    let [modes    , q_args] = s:parse_modes(q_args)
+
+    let q_args = s:skip_spaces(q_args)
+    let [options  , q_args] = s:parse_options(q_args)
+    let options = s:add_pragmas(options)
+
+    let q_args = s:skip_spaces(q_args)
+    let [lhs, q_args] = s:parse_one_arg_from_q_args(q_args)
+    if s:is_vim_map_option(lhs)
+        throw s:parse_error(printf("'%s' is :map's option. Please use -option style instead.", lhs))
+    endif
+
+    let q_args = s:skip_spaces(q_args)
+    let rhs = q_args
+
+    " Assert lhs != ''
+    " Assert rhs != ''
+
+    return s:map_info_new(modes, options, lhs, rhs)
+endfunction "}}}
+
 function! s:convert_options(options) "{{{
     return
     \   (get(a:options, 'expr', 0) ? '<expr>' : '')
@@ -233,103 +331,7 @@ function! s:sid_named_map(map) "{{{
 endfunction "}}}
 
 
-" Parser for ex commands.
-function! s:get_modes(q_args) "{{{
-    let [arg, rest] = s:get_one_arg_from_q_args(a:q_args)
-    let modes = matchstr(arg, '^\[\zs[nvoiclxs \t]\+\ze\]')
-    " Assert modes != ''
-    return [modes, rest]
-endfunction "}}}
-
-function! s:get_options(q_args) "{{{
-    let q_args = a:q_args
-    let opt = {}
-
-    while !empty(q_args)
-        let [a, rest] = s:get_one_arg_from_q_args(q_args)
-        if a[0] !=# '-'
-            break
-        endif
-        let q_args = rest
-
-        if a ==# '--'
-            break
-        elseif a[0] ==# '-'
-            if a[1:] ==# 'expr'
-                let opt.expr = 1
-            elseif a[1:] ==# 'noremap'
-                let opt.noremap = 1
-            elseif a[1:] ==# 'buffer'
-                let opt.buffer = 1
-            elseif a[1:] ==# 'silent'
-                let opt.silent = 1
-            elseif a[1:] ==# 'special'
-                let opt.special = 1
-            elseif a[1:] ==# 'script'
-                let opt.script = 1
-            elseif a[1:] ==# 'unique'
-                let opt.unique = 1
-            else
-                throw s:parse_error(printf("unknown option '%s'.", a))
-            endif
-        endif
-    endwhile
-
-    return [opt, q_args]
-endfunction "}}}
-
-function! s:add_pragmas(options) "{{{
-    return extend(copy(a:options), {
-    \   'pragmas': filter(keys(s:pragmas), 's:pragmas[v:val]')
-    \}, 'keep')
-endfunction "}}}
-
-function! s:get_one_arg_from_q_args(q_args) "{{{
-    let arg = s:skip_spaces(a:q_args)
-    let head = matchstr(arg, '^.\{-}[^\\]\ze\([ \t]\|$\)')
-    let rest = strpart(arg, strlen(head))
-    return [head, rest]
-endfunction "}}}
-
-function! s:opt_has(options, name) "{{{
-    return get(a:options, a:name, 0)
-endfunction "}}}
-
-function! s:pragma_has(options, name) "{{{
-    return s:one_of(a:name, get(a:options, 'pragmas', []))
-endfunction "}}}
-
-function! s:is_vim_map_option(map) "{{{
-    return a:map =~# '^<\(expr\|buffer\|silent\|special\|script\|unique\)>$'
-endfunction "}}}
-
-function! s:parse_args(q_args) "{{{
-    " NOTE: Currently :DefMap and :Map arguments are the same.
-
-    let q_args = a:q_args
-
-    let q_args = s:skip_spaces(q_args)
-    let [modes    , q_args] = s:get_modes(q_args)
-
-    let q_args = s:skip_spaces(q_args)
-    let [options  , q_args] = s:get_options(q_args)
-    let options = s:add_pragmas(options)
-
-    let q_args = s:skip_spaces(q_args)
-    let [lhs, q_args] = s:get_one_arg_from_q_args(q_args)
-    if s:is_vim_map_option(lhs)
-        throw s:parse_error(printf("'%s' is :map's option. Please use -option style instead.", lhs))
-    endif
-
-    let q_args = s:skip_spaces(q_args)
-    let rhs = q_args
-
-    " Assert lhs != ''
-    " Assert rhs != ''
-
-    return s:map_info_new(modes, options, lhs, rhs)
-endfunction "}}}
-
+" Mapping info object to give to plugins.
 " s:map_info {{{
 let s:map_info = {'modes': '', 'options': {}, 'lhs': '', 'rhs': ''}
 
@@ -397,6 +399,7 @@ function! s:snr_prefix() "{{{
 endfunction "}}}
 
 
+" Pragmas
 function! emap#available_pragmas() "{{{
     return keys(s:pragmas)
 endfunction "}}}
