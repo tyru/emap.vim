@@ -97,7 +97,7 @@ function! s:cmd_defmap(q_args) "{{{
     " Assert len(a:q_args) >= 3
 
     try
-        let [modes, options, lhs, rhs] = s:parse_args(a:q_args)
+        let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
         " ShowStackTrace
         echoerr v:exception v:throwpoint
@@ -105,9 +105,12 @@ function! s:cmd_defmap(q_args) "{{{
     endtry
 
     let ret = []
-    for m in filter(s:each_char(modes), '!s:is_whitespace(v:val)')
-        call add(ret,
-        \   s:get_map_excmd(m, options, s:sid_named_map(lhs), s:convert_map(rhs, m)))
+    for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
+        call add(ret, s:get_map_excmd(
+        \               m,
+        \               map_info.options,
+        \               s:sid_named_map(map_info.lhs),
+        \               s:convert_map(map_info.rhs, m)))
     endfor
 
     " Decho ':DefMap'
@@ -119,7 +122,7 @@ endfunction "}}}
 
 function! s:cmd_map(q_args) "{{{
     try
-        let [modes, options, lhs, rhs] = s:parse_args(a:q_args)
+        let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
         " ShowStackTrace
         echoerr v:exception v:throwpoint
@@ -127,9 +130,12 @@ function! s:cmd_map(q_args) "{{{
     endtry
 
     let ret = []
-    for m in filter(s:each_char(modes), '!s:is_whitespace(v:val)')
-        call add(ret,
-        \   s:get_map_excmd(m, options, s:convert_map(lhs, m), s:convert_map(rhs, m)))
+    for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
+        call add(ret, s:get_map_excmd(
+        \               m,
+        \               map_info.options,
+        \               s:convert_map(map_info.lhs, m),
+        \               s:convert_map(map_info.rhs, m)))
     endfor
 
     " Decho ':Map'
@@ -152,16 +158,6 @@ endfunction "}}}
 function! s:convert_map(lhs, ...) "{{{
     " TODO Parse nested key notation.
     return join(map(s:split_to_keys(a:lhs), 'call("s:eval_special_key", [v:val] + a:000)'), '')
-endfunction "}}}
-
-function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
-    let noremap = get(a:options, 'noremap', 0)
-    return join([
-    \   printf('%s%smap', a:mode, noremap ? 'nore' : ''),
-    \   s:convert_options(a:options),
-    \   a:lhs,
-    \   a:rhs
-    \])
 endfunction "}}}
 
 function! s:split_to_keys(map)  "{{{
@@ -205,6 +201,16 @@ function! s:eval_special_key(map, ...) "{{{
     else
         return a:map
     endif
+endfunction "}}}
+
+function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
+    let noremap = get(a:options, 'noremap', 0)
+    return join([
+    \   printf('%s%smap', a:mode, noremap ? 'nore' : ''),
+    \   s:convert_options(a:options),
+    \   a:lhs,
+    \   a:rhs
+    \])
 endfunction "}}}
 
 function! s:sid_named_map(map) "{{{
@@ -311,8 +317,24 @@ function! s:parse_args(q_args) "{{{
     " Assert lhs != ''
     " Assert rhs != ''
 
-    return [modes, options, lhs, rhs]
+    return s:map_info_new(modes, options, lhs, rhs)
 endfunction "}}}
+
+" s:map_info {{{
+let s:map_info = {'modes': '', 'options': {}, 'lhs': '', 'rhs': ''}
+
+function! s:map_info_new(modes, options, lhs, rhs) "{{{
+    let obj = deepcopy(s:map_info)
+
+    for varname in keys(a:)
+        let obj[varname] = deepcopy(a:[varname])
+    endfor
+
+    return obj
+endfunction "}}}
+
+lockvar s:map_info
+" }}}
 
 
 " Set SID to convert "<SID>" to "<SNR>...".
