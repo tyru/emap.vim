@@ -293,6 +293,10 @@ function! s:pragma_has(options, name) "{{{
     return s:one_of(a:name, get(a:options, 'pragmas', []))
 endfunction "}}}
 
+function! s:is_vim_map_option(map) "{{{
+    return a:map =~# '^<\(expr\|buffer\|silent\|special\|script\|unique\)>$'
+endfunction "}}}
+
 function! s:parse_args(q_args) "{{{
     " NOTE: Currently :DefMap and :Map arguments are the same.
 
@@ -307,6 +311,9 @@ function! s:parse_args(q_args) "{{{
 
     let q_args = s:skip_spaces(q_args)
     let [lhs, q_args] = s:get_one_arg_from_q_args(q_args)
+    if s:is_vim_map_option(lhs)
+        throw s:parse_error(printf("'%s' is :map's option. Please use -option style instead.", lhs))
+    endif
 
     let q_args = s:skip_spaces(q_args)
     let rhs = q_args
