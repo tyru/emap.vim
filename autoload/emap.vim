@@ -24,6 +24,15 @@ set cpo&vim
 " - `:DefMacroMap`
 
 " Script variables {{{
+let s:PRAGMA_IGNORE_SPACES = 'ignore-spaces'
+lockvar s:PRAGMA_IGNORE_SPACES
+let s:PRAGMA_LEADER_MACRO = 'leader-macro'
+lockvar s:PRAGMA_LEADER_MACRO
+
+let s:pragmas = {
+\   s:PRAGMA_IGNORE_SPACES : 1,
+\   s:PRAGMA_LEADER_MACRO  : 0,
+\}
 let s:vimrc_sid = -1
 " }}}
 
@@ -42,6 +51,25 @@ function! s:is_whitespace(s) "{{{
     return a:s =~# '^[ \t]\+$'
 endfunction "}}}
 
+function! s:all_of(elem, list) "{{{
+    for i in a:list
+        if i !=# a:elem
+            return 0
+        endif
+    endfor
+    return 1
+endfunction "}}}
+
+function! s:one_of(elem, list) "{{{
+    for i in a:list
+        if i ==# a:elem
+            return 1
+        endif
+    endfor
+    return 0
+endfunction "}}}
+
+" Errors
 function! s:parse_error(msg) "{{{
     return 'parse error: ' . a:msg
 endfunction "}}}
@@ -230,11 +258,25 @@ function! s:get_options(q_args) "{{{
     return [opt, q_args]
 endfunction "}}}
 
+function! s:add_pragmas(options) "{{{
+    return extend(copy(a:options), {
+    \   'pragmas': filter(keys(s:pragmas), 's:pragmas[v:val]')
+    \}, 'keep')
+endfunction "}}}
+
 function! s:get_one_arg_from_q_args(q_args) "{{{
     let arg = s:skip_spaces(a:q_args)
     let head = matchstr(arg, '^.\{-}[^\\]\ze\([ \t]\|$\)')
     let rest = strpart(arg, strlen(head))
     return [head, rest]
+endfunction "}}}
+
+function! s:opt_has(options, name) "{{{
+    return get(a:options, a:name, 0)
+endfunction "}}}
+
+function! s:pragma_has(options, name) "{{{
+    return s:one_of(a:name, get(a:options, 'pragmas', []))
 endfunction "}}}
 
 function! s:parse_args(q_args) "{{{
@@ -247,14 +289,14 @@ function! s:parse_args(q_args) "{{{
 
     let q_args = s:skip_spaces(q_args)
     let [options  , q_args] = s:get_options(q_args)
+    let options = s:add_pragmas(options)
 
     let q_args = s:skip_spaces(q_args)
     let [lhs, q_args] = s:get_one_arg_from_q_args(q_args)
 
+    " TODO Do ignore spaces at s:convert_map().
     let q_args = s:skip_spaces(q_args)
-    if get(options, 'expr', 0)
-        let rhs = q_args
-    else
+    if s:pragma_has(options, s:PRAGMA_IGNORE_SPACES) && !s:opt_has(options, 'expr')
         " Ignore whitespaces.
         let rhs = ''
         while q_args != ''
@@ -262,6 +304,8 @@ function! s:parse_args(q_args) "{{{
             let [_, q_args] = s:get_one_arg_from_q_args(q_args)
             let rhs .= _
         endwhile
+    else
+        let rhs = q_args
     endif
 
     " Assert lhs != ''
@@ -316,6 +360,52 @@ function! s:snr_prefix() "{{{
         return ''
     endif
     return printf('<SNR>%d_', s:vimrc_sid)
+endfunction "}}}
+
+
+function! emap#available_pragmas() "{{{
+    return keys(s:pragmas)
+endfunction "}}}
+
+function! s:is_valid_pragmas(pragmas) "{{{
+    return s:all_of(a:pragmas, emap#available_pragmas())
+endfunction "}}}
+
+function! s:convert_pragmas(pragmas) "{{{
+    let pragmas = type(a:pragmas) == type([]) ? a:pragmas : [a:pragmas]
+    let ret = []
+    for p in pragmas
+        if p ==# 'all'
+            let ret += emap#available_pragmas()
+        else
+            let ret += [p]
+        endif
+    endfor
+    return ret
+endfunction "}}}
+
+function! emap#set_pragmas(pragmas) "{{{
+    let pragmas = s:convert_pragmas(a:pragmas)
+    if !s:is_valid_pragmas(pragmas)
+        echoerr s:argument_error('emap#set_pragmas(): invalid pragmas')
+        return
+    endif
+
+    for i in pragmas
+        let s:pragmas[i] = 1
+    endfor
+endfunction "}}}
+
+function! emap#unset_pragmas(pragmas) "{{{
+    let pragmas = s:convert_pragmas(a:pragmas)
+    if !s:is_valid_pragmas(pragmas)
+        echoerr s:argument_error('emap#unset_pragmas(): invalid pragmas')
+        return
+    endif
+
+    for i in pragmas
+        let s:pragmas[i] = 0
+    endfor
 endfunction "}}}
 " }}}
 
