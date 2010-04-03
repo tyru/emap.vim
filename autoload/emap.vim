@@ -12,7 +12,7 @@ let s:PRAGMA_LEADER_MACRO = 'leader-macro'
 lockvar s:PRAGMA_LEADER_MACRO
 
 let s:pragmas = {
-\   s:PRAGMA_IGNORE_SPACES : 1,
+\   s:PRAGMA_IGNORE_SPACES : 0,
 \   s:PRAGMA_LEADER_MACRO  : 0,
 \}
 let s:vimrc_sid = -1
