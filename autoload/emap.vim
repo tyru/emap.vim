@@ -39,6 +39,12 @@ let s:vimrc_sid = -1
 " Functions {{{
 
 " Utilities
+function! s:warn(...) "{{{
+    echohl WarningMsg
+    echomsg join(a:000)
+    echohl None
+endfunction "}}}
+
 function! s:each_char(str) "{{{
     return split(a:str, '\zs')
 endfunction "}}}
@@ -100,7 +106,7 @@ function! s:cmd_defmap(q_args) "{{{
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
         " ShowStackTrace
-        echoerr v:exception v:throwpoint
+        call s:warn(v:exception)
         return
     endtry
 
@@ -125,7 +131,7 @@ function! s:cmd_map(q_args) "{{{
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
         " ShowStackTrace
-        echoerr v:exception v:throwpoint
+        call s:warn(v:exception)
         return
     endtry
 
@@ -345,7 +351,7 @@ lockvar s:map_info
 function! emap#set_sid(sid) "{{{
     let sid = a:sid + 0
     if sid ==# 0
-        echoerr s:argument_error("Invalid SID.")
+        call s:warn(s:argument_error("Invalid SID."))
         return
     endif
     let s:vimrc_sid = sid
@@ -355,7 +361,7 @@ function! emap#set_sid_from_sfile(sfile) "{{{
     let sid = s:get_sid_from_sfile(a:sfile)
     if sid == ''
         let msg = printf("emap#set_sid_from_sfile(): '%s' is not loaded yet.", a:sfile)
-        echoerr s:argument_error(msg)
+        call s:warn(s:argument_error(msg))
         return
     endif
     call emap#set_sid(sid)
@@ -380,9 +386,11 @@ endfunction "}}}
 
 function! s:snr_prefix() "{{{
     if s:vimrc_sid ==# -1
-        echoerr "Your SID is not set."
-        \       "Please set by emap#set_sid()"
-        \       "or emap#set_sid_from_sfile()."
+        call s:warn(
+        \   "Your SID is not set.",
+        \   "Please set by emap#set_sid()",
+        \   "or emap#set_sid_from_sfile().",
+        \)
         return ''
     endif
     return printf('<SNR>%d_', s:vimrc_sid)
@@ -413,7 +421,7 @@ endfunction "}}}
 function! emap#set_pragmas(pragmas) "{{{
     let pragmas = s:convert_pragmas(a:pragmas)
     if !s:is_valid_pragmas(pragmas)
-        echoerr s:argument_error('emap#set_pragmas(): invalid pragmas')
+        call s:warn(s:argument_error('emap#set_pragmas(): invalid pragmas'))
         return
     endif
 
@@ -425,7 +433,7 @@ endfunction "}}}
 function! emap#unset_pragmas(pragmas) "{{{
     let pragmas = s:convert_pragmas(a:pragmas)
     if !s:is_valid_pragmas(pragmas)
-        echoerr s:argument_error('emap#unset_pragmas(): invalid pragmas')
+        call s:warn(s:argument_error('emap#unset_pragmas(): invalid pragmas'))
         return
     endif
 
