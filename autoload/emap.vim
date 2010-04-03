@@ -108,8 +108,10 @@ function! s:is_whitespace(s) "{{{
 endfunction "}}}
 
 function! s:all_of(elem, list) "{{{
-    for i in a:list
-        if i !=# a:elem
+    let list_p = type(a:elem) == type([])
+
+    for i in list_p ? a:elem : a:list
+        if list_p ? s:all_of(i, a:list) : i !=# a:elem
             return 0
         endif
     endfor
@@ -117,8 +119,10 @@ function! s:all_of(elem, list) "{{{
 endfunction "}}}
 
 function! s:one_of(elem, list) "{{{
-    for i in a:list
-        if i ==# a:elem
+    let list_p = type(a:elem) == type([])
+
+    for i in list_p ? a:elem : a:list
+        if list_p ? s:one_of(i, a:list) : i ==# a:elem
             return 1
         endif
     endfor
