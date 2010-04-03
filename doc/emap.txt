@@ -1,0 +1,227 @@
+*emap.txt* *emap*
+
+Author:
+  tyru <tyru.exe@gmail.com>
+Version: 0.0.0
+License:
+" NEW BSD LICENSE {{{
+"   Copyright (c) 2009, tyru
+"   All rights reserved.
+"
+"   Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+"
+"       * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+"       * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+"       * Neither the name of the tyru nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+"
+"   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+" }}}
+
+==============================================================================
+CONTENTS						*emap-contents*
+
+Introduction		|emap-introduction|
+Interface			|emap-interface|
+  Keymappings		|emap-keymappings|
+  Variables			|emap-variables|
+  Commands			|emap-commands|
+  Functions			|emap-functions|
+Pragma				|emap-pragma|
+  What is pragma	|emap-what-is-pragma|
+  Avaialabe pragmas	|emap-available-pragmas|
+    ignore-spaces	|emap-pragma-ignore-spaces|
+    all				|emap-pragma-all|
+TODO				|emap-todo|
+Changelog			|emap-changelog|
+
+
+==============================================================================
+INTRODUCTION						*emap-introduction* {{{
+>
+	call emap#load()
+	call emap#set_sid_from_sfile(expand('<sfile>'))
+
+	" or
+	function s:SID()    " :help <SID>
+	  return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
+	endfun
+	call emap#load()
+	call emap#set_sid(s:SID())
+
+	DefMap [nvo] -noremap clipboard "+
+	DefMap [nvo] -noremap primary   "*
+	DefMap [nvo] -noremap blackhole "_
+	DefMap [nvo] -noremap delete-char x
+	DefMap [nvo] -noremap delete* d
+
+	" `emap#set_pragmas('ignore-spaces')` ignores whitespaces in rhs.
+	" See |emap-pragma| for the details.
+	call emap#set_pragmas('ignore-spaces')
+
+	" paste to clipboard
+	Map [nvo] -noremap <Leader>y     <clipboard> y
+	Map [nvo] -noremap <SID>[comma]y <primary>   y
+	Map [nvo] -noremap <Leader>d     <clipboard> d
+	Map [nvo] -noremap <SID>[comma]d <primary>   d
+
+	" do not destroy noname register.
+	Map [nvo] x        <blackhole> <delete-char>
+	Map [nvo] <Space>d <blackhole> <delete*>
+
+	call emap#unset_pragmas('ignore-spaces')
+
+	Map [nvo] -noremap <Leader>e =
+
+	Map [i] -noremap -expr <SID>(bs-ctrl-])    getline('.')[col('.') - 2] ==# "\<C-]>" ? "\<BS>" : ''
+	Map [i]                <C-]>               <C-]><SID>(bs-ctrl-])
+	Map [c] -noremap -expr <SID>(bs-ctrl-])    getcmdline()[getcmdpos() - 2] ==# "\<C-]>" ? "\<BS>" : ''
+	Map [c]                <C-]>               <C-]><SID>(bs-ctrl-])
+
+	" `-` seems like option. `--` to separate options and lhs.
+	Map [n] -noremap    + <C-a>
+	Map [n] -noremap -- - <C-x>
+<
+}}}
+==============================================================================
+INTERFACE				*emap-interface* {{{
+------------------------------------------------------------------------------
+KEYMAPPINGS					*emap-keymappings* {{{
+
+This plugin maps keymappings :)
+
+}}}
+------------------------------------------------------------------------------
+VARIABLES					*emap-variables* {{{
+
+Currently no variables.
+
+}}}
+------------------------------------------------------------------------------
+COMMANDS					*emap-commands* {{{
+
+:Map						*:Map*
+:DefMap						*:DefMap*
+
+(TODO Write later)
+
+}}}
+------------------------------------------------------------------------------
+FUNCTIONS				*emap-functions* {{{
+
+(TODO Write later)
+
+}}}
+}}}
+==============================================================================
+PRAGMA						*emap-pragma* {{{
+------------------------------------------------------------------------------
+WHAT IS PRAGMA				*emap-what-is-pragma* *emap-pragma-introduction* {{{
+`Pragma` is to change command's behavior.
+>
+	call emap#load()
+	call emap#set_sid_from_sfile(expand('<sfile>'))
+
+	call emap#set_pragmas('ignore-spaces')
+
+	" do not destroy noname register.
+	Map [nvo] x        <blackhole> <delete-char>
+	Map [nvo] <Space>d <blackhole> <delete*>
+<
+Comment out |emap#set_pragmas()| and see the difference of `:map x`.
+}}}
+------------------------------------------------------------------------------
+AVAIALABE PRAGMAS			*emap-available-pragmas* *emap-pragma-list* {{{
+
+ignore-spaces				*emap-pragma-ignore-spaces*
+	Ignore all whitespaces in rhs.
+	If you want to include spaces, Use <Space>.
+
+all							*emap-pragma-all*
+	This means all pragmas. >
+	call emap#set_pragmas('all')
+<	means `Set all available pragmas`.
+	To get all available pragmas, Use |emap#available_pragmas()|.
+
+}}}
+}}}
+==============================================================================
+TODO						*emap-todo* {{{
+
+- Nested <...> expression.
+- To be hackable.
+- Add "$" prefix to `macro`.
+`macro` means expression to be expanded
+before doing mapping like lisp macro.
+
+e.g.: >
+  DefMap [n] -noremap orig q
+  Map [n] <orig><$lhs> <$lhs>
+<
+
+Usually, <...> expression is expanded to
+"<SID>@..." ("..." means given name).
+But `macro` is expanded when parsing arguments
+of ex commands like |:DefMap|, |:Map|.
+- |:DefMap| defines mapping to take arguments.
+>
+    DefMap [n] -nargs=1 yank y <args>
+    " This is converted to `y $`.
+    Map    [n]          <yank $>
+<
+- |:Unmap| ?
+- |:DefMacroMap|
+- `leader-macro` pragma
+- |:DefOwnMap|
+>
+    DefOwnMap FnMap Map [<modes>] <options> <lhs> :<C-u>call <rhs><CR>
+    DefOwnMap ObjMap [<mode n>vo] <options> <lhs> <rhs>
+
+    DefOwnMap -function FnMap <SID>cmd_fnmap
+    function! s:cmd_fnmap(map_info)
+        let ret = []
+        for m in split(map_info.modes, '\zs')
+            call add(ret,
+            \     s:get_map_excmd(
+            \         m,
+            \         map_info.options,
+            \         map_info.lhs,
+            \         map_info.rhs))
+        endfor
+        return ret
+    endfunction
+
+    DefOwnMap ArpeggioMap <execute <let-each-mode [m] Arpeggio <get-map-ex <m>> <lhs> <rhs>>>
+
+    " `-eval-function` is too long.
+    DefOwnMap -eval-function ArpeggioMap <SID>cmd_arpeggio()
+    function! s:cmd_arpeggio()
+        <execute <let-each-mode [m] Arpeggio <get-map-ex <m>> <lhs> <rhs>>>
+    endfunction
+<
+- Plugin feature
+  - Plugin can change
+    - modes
+    - options
+    - lhs
+    - rhs
+  - Plugin which I'm thinking
+    - emap-repeat
+    - emap-candidates
+    - emap-each
+    - emap-arpeggio
+    - emap-submode
+    - emap-altercmd
+    - ...
+- `:autocmd` like hook feature.
+  - When {before,after,both} {lhs,rhs,both} is converted
+- command-line completion for commands.
+
+}}}
+==============================================================================
+CHANGELOG						*emap-changelog* {{{
+
+See git-log :p
+
+}}}
+==============================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl:noet:fdm=marker:fen
