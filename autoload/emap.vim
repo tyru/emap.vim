@@ -104,8 +104,13 @@ function! s:cmd_map(q_args) "{{{
 endfunction "}}}
 
 function! s:convert_options(options) "{{{
-    let expr = get(a:options, 'expr', 0) ? '<expr>' : ''
-    return expr
+    return
+    \   (get(a:options, 'expr', 0) ? '<expr>' : '')
+    \   . (get(a:options, 'buffer', 0) ? '<buffer>' : '')
+    \   . (get(a:options, 'silent', 0) ? '<silent>' : '')
+    \   . (get(a:options, 'special', 0) ? '<special>' : '')
+    \   . (get(a:options, 'script', 0) ? '<script>' : '')
+    \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
 endfunction "}}}
 
 function! s:convert_map(lhs, ...) "{{{
@@ -198,6 +203,16 @@ function! s:get_options(q_args) "{{{
                 let opt.expr = 1
             elseif a[1:] ==# 'noremap'
                 let opt.noremap = 1
+            elseif a[1:] ==# 'buffer'
+                let opt.buffer = 1
+            elseif a[1:] ==# 'silent'
+                let opt.silent = 1
+            elseif a[1:] ==# 'special'
+                let opt.special = 1
+            elseif a[1:] ==# 'script'
+                let opt.script = 1
+            elseif a[1:] ==# 'unique'
+                let opt.unique = 1
             else
                 throw s:parse_error(printf("unknown option '%s'.", a))
             endif
