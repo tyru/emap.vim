@@ -92,7 +92,13 @@ endfunction "}}}
 
 " For ex commands
 function! emap#load() "{{{
-    " TODO autoload function for :DefMap, :Map.
+    " TODO autoload functions for ex commands.
+
+    command!
+    \   -nargs=+
+    \   DefMacroMap
+    \   execute s:cmd_defmacromap(<q-args>)
+
     command!
     \   -nargs=+
     \   DefMap
@@ -111,6 +117,29 @@ function! emap#load() "{{{
     \   -bar -nargs=+
     \   UnsetPragmas
     \   call emap#unset_pragmas([<f-args>])
+endfunction "}}}
+
+function! s:cmd_defmacromap(q_args) "{{{
+    " Assert len(a:q_args) >= 3
+
+    try
+        let map_info = s:parse_args(a:q_args)
+    catch /^parse error:/
+        " ShowStackTrace
+        call s:warn(v:exception)
+        return
+    endtry
+
+    for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
+        execute s:get_map_excmd(
+        \               m,
+        \               map_info.options,
+        \               s:sid_macro_map(map_info.lhs),
+        \               s:convert_map(map_info.options, map_info.rhs, m))
+    endfor
+
+    " Decho ':DefMap'
+    " VarDump ret
 endfunction "}}}
 
 function! s:cmd_defmap(q_args) "{{{
@@ -289,12 +318,14 @@ endfunction "}}}
 function! s:eval_special_key(map, ...) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let evaled = eval(printf('"\%s"', a:map))
-        let named_map =
+        let map_name =
         \   matchstr(a:map, '^<\zs[^<>]\+\ze>$')
         let exists_named_map =
-        \   call('maparg', [s:sid_named_map(named_map)] + a:000) != ''
+        \   call('maparg', [s:sid_named_map(map_name)] + a:000) != ''
+        let exists_macro_map =
+        \   call('maparg', [s:sid_macro_map(map_name)] + a:000) != ''
 
-        " Assert named_map != ''
+        " Assert map_name != ''
 
         if a:map ==# '<SID>'
             return s:snr_prefix()
@@ -311,7 +342,10 @@ function! s:eval_special_key(map, ...) "{{{
         elseif exists_named_map
             " Found named mapping.
             " NOTE: Return "<SID>" not "<SNR>...".
-            return s:sid_named_map(named_map)
+            return s:sid_named_map(map_name)
+        elseif exists_macro_map
+            " Expand definition.
+            return call('maparg', [s:sid_macro_map(map_name)] + a:000)
         else
             " Other character like 'a', 'b', ...
             return a:map
@@ -331,9 +365,14 @@ function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
     \])
 endfunction "}}}
 
-function! s:sid_named_map(map) "{{{
+function! s:sid_macro_map(map) "{{{
     " All named mappings are mapped after '<SID>@'.
     return '<SID>@' . a:map
+endfunction "}}}
+
+function! s:sid_named_map(map) "{{{
+    " All named mappings are mapped after '<SID>$'.
+    return '<SID>$' . a:map
 endfunction "}}}
 
 
