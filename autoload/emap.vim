@@ -36,6 +36,7 @@ function! s:skip_spaces(q_args) "{{{
 endfunction "}}}
 
 function! s:is_whitespace(s) "{{{
+    " command-line's argument spaces.
     return a:s =~# '^[ \t]\+$'
 endfunction "}}}
 
