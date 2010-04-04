@@ -96,12 +96,12 @@ function! emap#load() "{{{
     command!
     \   -nargs=+
     \   DefMap
-    \   execute s:cmd_defmap(<q-args>)
+    \   call s:cmd_defmap(<q-args>)
 
     command!
     \   -nargs=+
     \   Map
-    \   execute s:cmd_map(<q-args>)
+    \   call s:cmd_map(<q-args>)
 
     command!
     \   -bar -nargs=+
@@ -124,20 +124,16 @@ function! s:cmd_defmap(q_args) "{{{
         return
     endtry
 
-    let ret = []
     for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
-        call add(ret, s:get_map_excmd(
+        execute s:get_map_excmd(
         \               m,
         \               map_info.options,
         \               s:sid_named_map(map_info.lhs),
-        \               s:convert_map(map_info.options, map_info.rhs, m)))
+        \               s:convert_map(map_info.options, map_info.rhs, m))
     endfor
 
     " Decho ':DefMap'
     " VarDump ret
-
-    " Let :execute at the caller scope.
-    return join(ret, '|')
 endfunction "}}}
 
 function! s:cmd_map(q_args) "{{{
@@ -149,20 +145,16 @@ function! s:cmd_map(q_args) "{{{
         return
     endtry
 
-    let ret = []
     for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
-        call add(ret, s:get_map_excmd(
+        execute s:get_map_excmd(
         \               m,
         \               map_info.options,
         \               s:convert_map(map_info.options, map_info.lhs, m),
-        \               s:convert_map(map_info.options, map_info.rhs, m)))
+        \               s:convert_map(map_info.options, map_info.rhs, m))
     endfor
 
     " Decho ':Map'
     " VarDump ret
-
-    " Let :execute at the caller scope.
-    return join(ret, '|')
 endfunction "}}}
 
 
