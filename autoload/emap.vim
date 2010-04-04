@@ -363,13 +363,14 @@ function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
     \])
 endfunction "}}}
 
+
+" All macro mappings are mapped after '<SID>@'.
 function! s:sid_macro_map(map) "{{{
-    " All named mappings are mapped after '<SID>@'.
     return '<SID>@' . a:map
 endfunction "}}}
 
+" All named mappings are mapped after '<SID>$'.
 function! s:sid_named_map(map) "{{{
-    " All named mappings are mapped after '<SID>$'.
     return '<SID>$' . a:map
 endfunction "}}}
 
