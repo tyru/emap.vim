@@ -135,7 +135,7 @@ function! s:cmd_defmacromap(q_args) "{{{
         \               m,
         \               map_info.options,
         \               s:sid_macro_map(map_info.lhs),
-        \               s:convert_map(map_info.options, map_info.rhs, m))
+        \               s:compile_map(map_info.rhs, m, map_info.options))
     endfor
 
     " Decho ':DefMap'
@@ -158,7 +158,7 @@ function! s:cmd_defmap(q_args) "{{{
         \               m,
         \               map_info.options,
         \               s:sid_named_map(map_info.lhs),
-        \               s:convert_map(map_info.options, map_info.rhs, m))
+        \               s:compile_map(map_info.rhs, m, map_info.options))
     endfor
 
     " Decho ':DefMap'
@@ -178,8 +178,8 @@ function! s:cmd_map(q_args) "{{{
         execute s:get_map_excmd(
         \               m,
         \               map_info.options,
-        \               s:convert_map(map_info.options, map_info.lhs, m),
-        \               s:convert_map(map_info.options, map_info.rhs, m))
+        \               s:compile_map(map_info.lhs, m, map_info.options),
+        \               s:compile_map(map_info.rhs, m, map_info.options))
     endfor
 
     " Decho ':Map'
@@ -285,6 +285,7 @@ function! s:parse_args(q_args) "{{{
 endfunction "}}}
 
 function! s:convert_options(options) "{{{
+    " Convert to Vim's :map option notation.
     return
     \   (get(a:options, 'expr', 0) ? '<expr>' : '')
     \   . (get(a:options, 'buffer', 0) ? '<buffer>' : '')
@@ -294,9 +295,9 @@ function! s:convert_options(options) "{{{
     \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
 endfunction "}}}
 
-function! s:convert_map(options, lhs, ...) "{{{
+function! s:compile_map(map, mode, options) "{{{
     " TODO Parse nested key notation.
-    let keys = s:split_to_keys(a:lhs)
+    let keys = s:split_to_keys(a:map)
 
     " Ignore whitespaces.
     if s:pragma_has(a:options, s:PRAGMA_IGNORE_SPACES) && !s:opt_has(a:options, 'expr')
@@ -304,7 +305,7 @@ function! s:convert_map(options, lhs, ...) "{{{
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
 
-    return join(map(keys, 'call("s:eval_special_key", [v:val] + a:000)'), '')
+    return join(map(keys, 's:eval_special_key(v:val, a:mode, a:options)'), '')
 endfunction "}}}
 
 function! s:split_to_keys(map)  "{{{
@@ -315,15 +316,13 @@ function! s:split_to_keys(map)  "{{{
     return split(a:map, '\(<[^<>]\+>\|.\)\zs')
 endfunction "}}}
 
-function! s:eval_special_key(map, ...) "{{{
+function! s:eval_special_key(map, mode, options) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let evaled = eval(printf('"\%s"', a:map))
         let map_name =
         \   matchstr(a:map, '^<\zs[^<>]\+\ze>$')
-        let exists_named_map =
-        \   call('maparg', [s:sid_named_map(map_name)] + a:000) != ''
-        let exists_macro_map =
-        \   call('maparg', [s:sid_macro_map(map_name)] + a:000) != ''
+        let exists_named_map = maparg(s:sid_named_map(map_name), a:mode) != ''
+        let exists_macro_map = maparg(s:sid_macro_map(map_name), a:mode) != ''
 
         " Assert map_name != ''
 
@@ -340,12 +339,11 @@ function! s:eval_special_key(map, ...) "{{{
             "
             return a:map
         elseif exists_named_map
-            " Found named mapping.
-            " NOTE: Return "<SID>" not "<SNR>...".
+            " Found :DefMap's mapping. Return <SID> named mapping.
             return s:sid_named_map(map_name)
         elseif exists_macro_map
-            " Expand definition.
-            return call('maparg', [s:sid_macro_map(map_name)] + a:000)
+            " Found :DefMacroMap's mapping. Return rhs definition.
+            return maparg(s:sid_macro_map(map_name), a:mode)
         else
             " Other character like 'a', 'b', ...
             return a:map
