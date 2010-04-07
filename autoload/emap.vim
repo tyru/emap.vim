@@ -18,6 +18,10 @@ let s:pragmas = {
 \   s:PRAGMA_LEADER_MACRO  : 0,
 \   s:PRAGMA_WARNINGS_MODE : 0,
 \}
+let s:group_pragmas = {
+\   'all': 'emap#available_pragmas()',
+\   'warnings': printf('filter(emap#available_pragmas(), %s)', string('v:val =~# "^warnings-"')),
+\}
 let s:vimrc_sid = -1
 " }}}
 
@@ -503,16 +507,26 @@ function! emap#available_pragmas() "{{{
     return keys(s:pragmas)
 endfunction "}}}
 
+function! emap#group_pragmas() "{{{
+    return keys(s:group_pragmas)
+endfunction "}}}
+
 function! s:is_valid_pragmas(pragmas) "{{{
     return s:has_all_of(emap#available_pragmas(), a:pragmas)
 endfunction "}}}
 
+function! s:is_group_pragma(pragma) "{{{
+    " NOTE: This receives one pragma, not List.
+    return s:has_elem(emap#group_pragmas(), a:pragma)
+endfunction "}}}
+
 function! s:convert_pragmas(pragmas) "{{{
+    " NOTE: This function ignores invalid pragmas.
     let pragmas = type(a:pragmas) == type([]) ? a:pragmas : [a:pragmas]
     let ret = []
     for p in pragmas
-        if p ==# 'all'
-            let ret += emap#available_pragmas()
+        if s:is_group_pragma(p)
+            let ret += eval(s:group_pragmas[p])
         else
             let ret += [p]
         endif
