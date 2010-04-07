@@ -27,6 +27,10 @@ function! s:warn(...) "{{{
     echohl None
 endfunction "}}}
 
+function! s:warnf(msg, ...) "{{{
+    call s:warn(call('printf', [a:msg] + a:000))
+endfunction "}}}
+
 function! s:each_char(str) "{{{
     return split(a:str, '\zs')
 endfunction "}}}
