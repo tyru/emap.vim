@@ -423,18 +423,19 @@ function! s:get_unmap_excmd(mode, options, lhs) "{{{
     \])
 endfunction "}}}
 
-" All macro mappings are mapped after '<SID>@'.
 function! s:sid_macro_map(map) "{{{
+    " NOTE: All macro mappings are mapped after '<SID>@'.
     return '<SID>@' . a:map
 endfunction "}}}
 
-" All named mappings are mapped after '<SID>$'.
 function! s:sid_named_map(map) "{{{
+    " NOTE: All named mappings are mapped after '<SID>$'.
     return '<SID>$' . a:map
 endfunction "}}}
 
 
 " Mapping info object to give to plugins.
+" This will be created by `s:parse_args()`.
 " s:map_info {{{
 let s:map_info = {'modes': '', 'options': {}, 'lhs': '', 'rhs': ''}
 
