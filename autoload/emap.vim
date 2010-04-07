@@ -110,6 +110,11 @@ function! emap#load() "{{{
     \   call s:cmd_map(<q-args>)
 
     command!
+    \   -nargs=+
+    \   Unmap
+    \   call s:cmd_unmap(<q-args>)
+
+    command!
     \   -bar -nargs=+
     \   SetPragmas
     \   call emap#set_pragmas([<f-args>])
@@ -186,6 +191,25 @@ function! s:cmd_map(q_args) "{{{
     " VarDump ret
 endfunction "}}}
 
+function! s:cmd_unmap(q_args) "{{{
+    try
+        let map_info = s:parse_args(a:q_args)
+    catch /^parse error:/
+        " ShowStackTrace
+        call s:warn(v:exception)
+        return
+    endtry
+
+    for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
+        execute s:get_unmap_excmd(
+        \               m,
+        \               map_info.options,
+        \               s:compile_map(map_info.lhs, m, map_info.options))
+    endfor
+
+    " Decho ':Map'
+    " VarDump ret
+endfunction "}}}
 
 " Parser for ex commands.
 function! s:parse_modes(q_args) "{{{
@@ -363,6 +387,13 @@ function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
     \])
 endfunction "}}}
 
+function! s:get_unmap_excmd(mode, options, lhs) "{{{
+    return join([
+    \   printf('%sunmap', a:mode),
+    \   s:convert_options(a:options),
+    \   a:lhs,
+    \])
+endfunction "}}}
 
 " All macro mappings are mapped after '<SID>@'.
 function! s:sid_macro_map(map) "{{{
