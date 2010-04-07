@@ -10,10 +10,13 @@ let s:PRAGMA_IGNORE_SPACES = 'ignore-spaces'
 lockvar s:PRAGMA_IGNORE_SPACES
 let s:PRAGMA_LEADER_MACRO = 'leader-macro'
 lockvar s:PRAGMA_LEADER_MACRO
+let s:PRAGMA_WARNINGS_MODE = 'warnings-mode'
+lockvar s:PRAGMA_WARNINGS_MODE
 
 let s:pragmas = {
 \   s:PRAGMA_IGNORE_SPACES : 0,
 \   s:PRAGMA_LEADER_MACRO  : 0,
+\   s:PRAGMA_WARNINGS_MODE : 0,
 \}
 let s:vimrc_sid = -1
 " }}}
@@ -93,6 +96,22 @@ function! s:argument_error(msg) "{{{
     return 'argument error: ' . a:msg
 endfunction "}}}
 
+" Mode
+function! s:is_mode_char(char) "{{{
+    return a:char =~# '^[nvoiclxs]$'
+endfunction "}}}
+
+function! s:filter_modes(modes, options) "{{{
+    let ret = []
+    for m in s:each_char(a:modes)
+        if s:is_mode_char(m)
+            call add(ret, m)
+        elseif s:pragma_has(a:options, s:PRAGMA_WARNINGS_MODE)
+            call s:warnf("'%s' is not available mode.", m)
+        endif
+    endfor
+    return ret
+endfunction "}}}
 
 " For ex commands
 function! emap#load() "{{{
@@ -139,7 +158,7 @@ function! s:cmd_defmacromap(q_args) "{{{
         return
     endtry
 
-    for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
+    for m in s:filter_modes(map_info.modes, map_info.options)
         execute s:get_map_excmd(
         \               m,
         \               map_info.options,
@@ -162,7 +181,7 @@ function! s:cmd_defmap(q_args) "{{{
         return
     endtry
 
-    for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
+    for m in s:filter_modes(map_info.modes, map_info.options)
         execute s:get_map_excmd(
         \               m,
         \               map_info.options,
@@ -183,7 +202,7 @@ function! s:cmd_map(q_args) "{{{
         return
     endtry
 
-    for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
+    for m in s:filter_modes(map_info.modes, map_info.options)
         execute s:get_map_excmd(
         \               m,
         \               map_info.options,
@@ -204,7 +223,7 @@ function! s:cmd_unmap(q_args) "{{{
         return
     endtry
 
-    for m in filter(s:each_char(map_info.modes), '!s:is_whitespace(v:val)')
+    for m in s:filter_modes(map_info.modes, map_info.options)
         execute s:get_unmap_excmd(
         \               m,
         \               map_info.options,
@@ -217,9 +236,9 @@ endfunction "}}}
 
 " Parser for ex commands.
 function! s:parse_modes(q_args) "{{{
-    let [arg, rest] = s:parse_one_arg_from_q_args(a:q_args)
-    let modes = matchstr(arg, '^\[\zs[nvoiclxs \t]\+\ze\]')
-    " Assert modes != ''
+    let mode_arg = matchstr(a:q_args, '^\[[^\[\]]\+\]')
+    let rest  = strpart(a:q_args, strlen(mode_arg))
+    let modes = mode_arg[1:-2]
     return [modes, rest]
 endfunction "}}}
 
@@ -287,6 +306,7 @@ endfunction "}}}
 
 function! s:parse_args(q_args) "{{{
     " NOTE: Currently :DefMap and :Map arguments are the same.
+    " TODO: More STRICT
 
     let q_args = a:q_args
 
