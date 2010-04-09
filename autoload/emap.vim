@@ -43,12 +43,7 @@ function! s:each_char(str) "{{{
 endfunction "}}}
 
 function! s:skip_spaces(q_args) "{{{
-    return substitute(a:q_args, '^\s*', '', '')
-endfunction "}}}
-
-function! s:is_whitespace(s) "{{{
-    " command-line's argument spaces.
-    return a:s =~# '^[ \t]\+$'
+    return substitute(a:q_args, '^[ \t]*', '', '')
 endfunction "}}}
 
 function! s:has_elem(list, elem) "{{{
