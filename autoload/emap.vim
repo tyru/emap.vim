@@ -296,7 +296,13 @@ function! s:opt_has(options, name) "{{{
 endfunction "}}}
 
 function! s:pragma_has(options, name) "{{{
-    return s:has_elem(get(a:options, 'pragmas', []), a:name)
+    if a:name == s:PRAGMA_IGNORE_SPACES
+        " Do not apply `ignore-spaces` when -`expr` is specified.
+        return s:has_elem(get(a:options, 'pragmas', []), a:name)
+        \   && !s:opt_has(a:options, 'expr')
+    else
+        return s:has_elem(get(a:options, 'pragmas', []), a:name)
+    endif
 endfunction "}}}
 
 function! s:is_vim_map_option(map) "{{{
@@ -347,7 +353,7 @@ function! s:compile_map(map, mode, options) "{{{
     let keys = s:split_to_keys(a:map)
 
     " Ignore whitespaces.
-    if s:pragma_has(a:options, s:PRAGMA_IGNORE_SPACES) && !s:opt_has(a:options, 'expr')
+    if s:pragma_has(a:options, s:PRAGMA_IGNORE_SPACES)
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
