@@ -95,6 +95,7 @@ function! s:argument_error(msg) "{{{
     return 'argument error: ' . a:msg
 endfunction "}}}
 
+
 " Mode
 function! s:is_mode_char(char) "{{{
     return a:char =~# '^[nvoiclxs]$'
@@ -111,6 +112,7 @@ function! s:filter_modes(modes, options) "{{{
     endfor
     return ret
 endfunction "}}}
+
 
 " For ex commands
 function! emap#load() "{{{
@@ -233,6 +235,7 @@ function! s:cmd_unmap(q_args) "{{{
     " VarDump ret
 endfunction "}}}
 
+
 " Parser for ex commands.
 function! s:parse_modes(q_args) "{{{
     let mode_arg = matchstr(a:q_args, '^\[[^\[\]]\+\]')
@@ -348,6 +351,8 @@ function! s:convert_options(options) "{{{
     \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
 endfunction "}}}
 
+
+" Mapping
 function! emap#compile_map(map, mode, ...) "{{{
     let options = a:0 != 0 ? a:1 : s:add_pragmas({})
 
@@ -506,7 +511,7 @@ function! s:snr_prefix() "{{{
 endfunction "}}}
 
 
-" Pragmas
+" Pragma
 function! emap#available_pragmas() "{{{
     return keys(s:pragmas)
 endfunction "}}}
