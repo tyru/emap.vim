@@ -162,7 +162,7 @@ function! s:cmd_defmacromap(q_args) "{{{
         \               m,
         \               map_info.options,
         \               s:sid_macro_map(map_info.lhs),
-        \               s:compile_map(map_info.rhs, m, map_info.options))
+        \               emap#compile_map(map_info.rhs, m, map_info.options))
     endfor
 
     " Decho ':DefMap'
@@ -185,7 +185,7 @@ function! s:cmd_defmap(q_args) "{{{
         \               m,
         \               map_info.options,
         \               s:sid_named_map(map_info.lhs),
-        \               s:compile_map(map_info.rhs, m, map_info.options))
+        \               emap#compile_map(map_info.rhs, m, map_info.options))
     endfor
 
     " Decho ':DefMap'
@@ -205,8 +205,8 @@ function! s:cmd_map(q_args) "{{{
         execute s:get_map_excmd(
         \               m,
         \               map_info.options,
-        \               s:compile_map(map_info.lhs, m, map_info.options),
-        \               s:compile_map(map_info.rhs, m, map_info.options))
+        \               emap#compile_map(map_info.lhs, m, map_info.options),
+        \               emap#compile_map(map_info.rhs, m, map_info.options))
     endfor
 
     " Decho ':Map'
@@ -226,7 +226,7 @@ function! s:cmd_unmap(q_args) "{{{
         execute s:get_unmap_excmd(
         \               m,
         \               map_info.options,
-        \               s:compile_map(map_info.lhs, m, map_info.options))
+        \               emap#compile_map(map_info.lhs, m, map_info.options))
     endfor
 
     " Decho ':Map'
@@ -348,17 +348,19 @@ function! s:convert_options(options) "{{{
     \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
 endfunction "}}}
 
-function! s:compile_map(map, mode, options) "{{{
+function! emap#compile_map(map, mode, ...) "{{{
+    let options = a:0 != 0 ? a:1 : s:add_pragmas({})
+
     " TODO Parse nested key notation.
     let keys = s:split_to_keys(a:map)
 
     " Ignore whitespaces.
-    if s:pragma_has(a:options, s:PRAGMA_IGNORE_SPACES)
+    if s:pragma_has(options, s:PRAGMA_IGNORE_SPACES)
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
 
-    return join(map(keys, 's:eval_special_key(v:val, a:mode, a:options)'), '')
+    return join(map(keys, 's:eval_special_key(v:val, a:mode, options)'), '')
 endfunction "}}}
 
 function! s:split_to_keys(map)  "{{{
