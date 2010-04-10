@@ -18,12 +18,22 @@ let s:pragmas = {
 \   s:PRAGMA_LEADER_MACRO  : 0,
 \   s:PRAGMA_WARNINGS_MODE : 0,
 \}
-let s:group_pragmas = {
+let s:GROUP_PRAGMAS = {
 \   'all': 'emap#available_pragmas()',
 \   'warnings': printf('filter(emap#available_pragmas(), %s)', string('v:val =~# "^warnings-"')),
 \}
+lockvar s:GROUP_PRAGMAS
+
 let s:vimrc_sid = -1
 " }}}
+
+
+" FIXME
+" - Specify '\C' to regex function's arguments.
+" - Refactoring
+"   - Remove unnecessary debug code.
+
+
 
 " Functions {{{
 
@@ -95,6 +105,7 @@ function! s:argument_error(msg) "{{{
     return 'argument error: ' . a:msg
 endfunction "}}}
 
+
 " Mode
 function! s:is_mode_char(char) "{{{
     return a:char =~# '^[nvoiclxs]$'
@@ -112,6 +123,7 @@ function! s:filter_modes(modes, options) "{{{
     return ret
 endfunction "}}}
 
+
 " For ex commands
 function! emap#load() "{{{
     " TODO autoload functions for ex commands.
@@ -119,7 +131,7 @@ function! emap#load() "{{{
     command!
     \   -nargs=+
     \   DefMacroMap
-    \   execute s:cmd_defmacromap(<q-args>)
+    \   call s:cmd_defmacromap(<q-args>)
 
     command!
     \   -nargs=+
@@ -232,6 +244,7 @@ function! s:cmd_unmap(q_args) "{{{
     " Decho ':Map'
     " VarDump ret
 endfunction "}}}
+
 
 " Parser for ex commands.
 function! s:parse_modes(q_args) "{{{
@@ -348,6 +361,8 @@ function! s:convert_options(options) "{{{
     \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
 endfunction "}}}
 
+
+" Mapping
 function! emap#compile_map(map, mode, ...) "{{{
     let options = a:0 != 0 ? a:1 : s:add_pragmas({})
 
@@ -381,8 +396,10 @@ function! s:eval_special_key(map, mode, options) "{{{
 
         " Assert map_name != ''
 
+        " TODO Priority
+
         if a:map ==# '<SID>'
-            return s:snr_prefix()
+            return s:vimrc_snr_prefix()
         elseif evaled !=# a:map
             " Built-in key notation (:help key-notation)
             "
@@ -493,7 +510,7 @@ function! s:get_sid_from_sfile(sfile) "{{{
     return ''
 endfunction "}}}
 
-function! s:snr_prefix() "{{{
+function! s:vimrc_snr_prefix() "{{{
     if s:vimrc_sid ==# -1
         call s:warn(
         \   "Your SID is not set.",
@@ -506,13 +523,13 @@ function! s:snr_prefix() "{{{
 endfunction "}}}
 
 
-" Pragmas
+" Pragma
 function! emap#available_pragmas() "{{{
     return keys(s:pragmas)
 endfunction "}}}
 
 function! emap#group_pragmas() "{{{
-    return keys(s:group_pragmas)
+    return keys(s:GROUP_PRAGMAS)
 endfunction "}}}
 
 function! s:is_valid_pragmas(pragmas) "{{{
@@ -530,7 +547,7 @@ function! s:convert_pragmas(pragmas) "{{{
     let ret = []
     for p in pragmas
         if s:is_group_pragma(p)
-            let ret += eval(s:group_pragmas[p])
+            let ret += eval(s:GROUP_PRAGMAS[p])
         else
             let ret += [p]
         endif
