@@ -31,6 +31,7 @@ Pragma				|emap-pragma|
   Avaialabe pragmas	|emap-available-pragmas|
     ignore-spaces	|emap-pragma-ignore-spaces|
     all				|emap-pragma-all|
+Key notation		|emap-key-notation|
 TODO				|emap-todo|
 Changelog			|emap-changelog|
 
@@ -108,7 +109,32 @@ COMMANDS					*emap-commands* {{{
 ------------------------------------------------------------------------------
 FUNCTIONS				*emap-functions* {{{
 
-(TODO Write later)
+emap#load()						*emap#load()* |emap-commands|
+	Define ex commands.
+
+emap#available_pragmas()		*emap#available_pragmas()* |emap-pragma|
+	Returns all available pragmas.
+
+emap#group_pragmas()			*emap#group_pragmas()* |emap-pragma|
+	Returns all group pragmas.
+
+emap#set_pragmas({pragmas})		*emap#set_pragmas()* |emap-pragma|
+	Enable some pragmas.
+	You can use group pragmas and non-group pragmas.
+
+emap#unset_pragmas({pragmas})	*emap#unset_pragmas()* |emap-pragma|
+	Disable some pragmas.
+	You can use group pragmas and non-group pragmas.
+
+emap#set_sid_from_sfile({sfile})	*emap#set_sid_from_sfile()* |<SID>|
+emap#set_sid({sid})
+	Set script id.
+	This is required for converting <SID> to <SNR>
+	in your .vimrc.
+
+emap#compile_map({map}, {mode} [, {options}])	*emap#compile_map()*
+	Compile |emap-key-notation| to Vim's |key-notation|.
+	namely, |:map|'s arguments.
 
 }}}
 }}}
@@ -143,6 +169,12 @@ all							*emap-pragma-all*
 	To get all available pragmas, Use |emap#available_pragmas()|.
 
 }}}
+}}}
+==============================================================================
+KEY NOTATION				*emap-key-notation* {{{
+
+(TODO)
+
 }}}
 ==============================================================================
 TODO						*emap-todo* {{{
