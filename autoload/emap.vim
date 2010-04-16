@@ -61,8 +61,6 @@ let s:named_map = s:map_dict_new()
 let s:macro_map = s:map_dict_new()
 " }}}
 
-
-
 " Functions {{{
 
 " Wrapper functions for built-ins.
@@ -132,6 +130,7 @@ function! s:has_one_of(list, elem) "{{{
         return s:has_elem(a:list, a:elem)
     endif
 endfunction "}}}
+
 
 " Errors
 function! s:parse_error(msg) "{{{
@@ -614,6 +613,7 @@ function! emap#unset_pragmas(pragmas) "{{{
         let s:pragmas[i] = 0
     endfor
 endfunction "}}}
+
 " }}}
 
 " Restore 'cpoptions' {{{
