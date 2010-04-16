@@ -28,12 +28,17 @@ let s:vimrc_sid = -1
 " }}}
 
 
-" FIXME
-" - Specify '\C' to regex function's arguments.
-
-
 
 " Functions {{{
+
+" Wrapper functions for built-ins.
+function! s:matchstr(str, regex) "{{{
+    return call('matchstr', [a:str, a:regex . '\C'] + a:000)
+endfunction "}}}
+function! s:matchlist(str, regex, ...) "{{{
+    return call('matchlist' [a:str, a:regex . '\C'] + a:000)
+endfunction "}}}
+
 
 " Utilities
 function! s:warn(...) "{{{
@@ -230,7 +235,7 @@ endfunction "}}}
 
 " Parser for ex commands.
 function! s:parse_modes(q_args) "{{{
-    let mode_arg = matchstr(a:q_args, '^\[[^\[\]]\+\]')
+    let mode_arg = s:matchstr(a:q_args, '^\[[^\[\]]\+\]')
     let rest  = strpart(a:q_args, strlen(mode_arg))
     let modes = mode_arg[1:-2]
     return [modes, rest]
@@ -281,7 +286,7 @@ endfunction "}}}
 
 function! s:parse_one_arg_from_q_args(q_args) "{{{
     let arg = s:skip_spaces(a:q_args)
-    let head = matchstr(arg, '^.\{-}[^\\]\ze\([ \t]\|$\)')
+    let head = s:matchstr(arg, '^.\{-}[^\\]\ze\([ \t]\|$\)')
     let rest = strpart(arg, strlen(head))
     return [head, rest]
 endfunction "}}}
@@ -371,8 +376,7 @@ endfunction "}}}
 function! s:eval_special_key(map, mode, options) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let evaled = eval(printf('"\%s"', a:map))
-        let map_name =
-        \   matchstr(a:map, '^<\zs[^<>]\+\ze>$')
+        let map_name = s:matchstr(a:map, '^<\zs[^<>]\+\ze>$')
         let exists_named_map = maparg(s:sid_named_map(map_name), a:mode) != ''
         let exists_macro_map = maparg(s:sid_macro_map(map_name), a:mode) != ''
 
@@ -483,7 +487,7 @@ function! s:get_sid_from_sfile(sfile) "{{{
     redir END
 
     for line in split(result, '\n')
-        let _ = matchlist(line, '^\s*\(\d\+\):\s*\(.*\)$')
+        let _ = s:matchlist(line, '^\s*\(\d\+\):\s*\(.*\)$')
         if a:sfile ==# _[2]
             return _[1]
         endif
