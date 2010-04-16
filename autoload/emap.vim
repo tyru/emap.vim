@@ -30,8 +30,6 @@ let s:vimrc_sid = -1
 
 " FIXME
 " - Specify '\C' to regex function's arguments.
-" - Refactoring
-"   - Remove unnecessary debug code.
 
 
 
@@ -164,7 +162,6 @@ function! s:cmd_defmacromap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        " ShowStackTrace
         call s:warn(v:exception)
         return
     endtry
@@ -176,9 +173,6 @@ function! s:cmd_defmacromap(q_args) "{{{
         \               s:sid_macro_map(map_info.lhs),
         \               emap#compile_map(map_info.rhs, m, map_info.options))
     endfor
-
-    " Decho ':DefMap'
-    " VarDump ret
 endfunction "}}}
 
 function! s:cmd_defmap(q_args) "{{{
@@ -187,7 +181,6 @@ function! s:cmd_defmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        " ShowStackTrace
         call s:warn(v:exception)
         return
     endtry
@@ -199,16 +192,12 @@ function! s:cmd_defmap(q_args) "{{{
         \               s:sid_named_map(map_info.lhs),
         \               emap#compile_map(map_info.rhs, m, map_info.options))
     endfor
-
-    " Decho ':DefMap'
-    " VarDump ret
 endfunction "}}}
 
 function! s:cmd_map(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        " ShowStackTrace
         call s:warn(v:exception)
         return
     endtry
@@ -220,16 +209,12 @@ function! s:cmd_map(q_args) "{{{
         \               emap#compile_map(map_info.lhs, m, map_info.options),
         \               emap#compile_map(map_info.rhs, m, map_info.options))
     endfor
-
-    " Decho ':Map'
-    " VarDump ret
 endfunction "}}}
 
 function! s:cmd_unmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        " ShowStackTrace
         call s:warn(v:exception)
         return
     endtry
@@ -240,9 +225,6 @@ function! s:cmd_unmap(q_args) "{{{
         \               map_info.options,
         \               emap#compile_map(map_info.lhs, m, map_info.options))
     endfor
-
-    " Decho ':Map'
-    " VarDump ret
 endfunction "}}}
 
 
