@@ -25,6 +25,40 @@ let s:GROUP_PRAGMAS = {
 lockvar s:GROUP_PRAGMAS
 
 let s:vimrc_sid = -1
+
+" s:map_dict {{{
+let s:map_dict = {'stash': {}}
+
+function! s:map_dict_new() "{{{
+    return deepcopy(s:map_dict)
+endfunction "}}}
+
+function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
+    " TODO Throw an error when <unique> is specified.
+
+    let self.stash[a:mode . a:lhs] =
+    \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
+endfunction "}}}
+function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
+    " NOTE: This function may be frequently called by :for.
+    " And `a:map_info_options` may be same object during :for.
+    return extend(
+    \   a:map_info_options,
+    \   {'_rhs': a:rhs},
+    \   'keep',
+    \)
+endfunction "}}}
+
+function! s:map_dict.maparg(lhs, mode) dict "{{{
+    " NOTE: a:mode is only one character.
+    return get(self.stash, a:mode . a:lhs, {'_rhs': ''})._rhs
+endfunction "}}}
+
+lockvar s:map_dict
+" }}}
+
+let s:named_map = s:map_dict_new()
+let s:macro_map = s:map_dict_new()
 " }}}
 
 
@@ -172,11 +206,17 @@ function! s:cmd_defmacromap(q_args) "{{{
     endtry
 
     for m in s:filter_modes(map_info.modes, map_info.options)
-        execute s:get_map_excmd(
-        \               m,
-        \               map_info.options,
-        \               s:sid_macro_map(map_info.lhs),
-        \               emap#compile_map(map_info.rhs, m, map_info.options))
+        let args = [
+        \   m,
+        \   map_info.options,
+        \   s:get_macro_lhs(map_info.lhs),
+        \   emap#compile_map(map_info.rhs, m, map_info.options),
+        \]
+        " Save this mapping to `s:macro_map` indivisually.
+        " Because Vim can't look up lhs with <SID> correctly by maparg().
+        call    call(s:macro_map.map, args, s:macro_map)
+        " Do mapping with :map command.
+        execute call('s:get_map_excmd', args)
     endfor
 endfunction "}}}
 
@@ -191,11 +231,17 @@ function! s:cmd_defmap(q_args) "{{{
     endtry
 
     for m in s:filter_modes(map_info.modes, map_info.options)
-        execute s:get_map_excmd(
-        \               m,
-        \               map_info.options,
-        \               s:sid_named_map(map_info.lhs),
-        \               emap#compile_map(map_info.rhs, m, map_info.options))
+        let args = [
+        \   m,
+        \   map_info.options,
+        \   s:get_named_lhs(map_info.lhs),
+        \   emap#compile_map(map_info.rhs, m, map_info.options),
+        \]
+        " Save this mapping to `s:macro_map` indivisually.
+        " Because Vim can't look up lhs with <SID> correctly by maparg().
+        call    call(s:named_map.map, args, s:named_map)
+        " Do mapping with :map command.
+        execute call('s:get_map_excmd', args)
     endfor
 endfunction "}}}
 
@@ -208,11 +254,14 @@ function! s:cmd_map(q_args) "{{{
     endtry
 
     for m in s:filter_modes(map_info.modes, map_info.options)
-        execute s:get_map_excmd(
-        \               m,
-        \               map_info.options,
-        \               emap#compile_map(map_info.lhs, m, map_info.options),
-        \               emap#compile_map(map_info.rhs, m, map_info.options))
+        let args = [
+        \   m,
+        \   map_info.options,
+        \   emap#compile_map(map_info.lhs, m, map_info.options),
+        \   emap#compile_map(map_info.rhs, m, map_info.options),
+        \]
+        " Do mapping with :map command.
+        execute call('s:get_map_excmd', args)
     endfor
 endfunction "}}}
 
@@ -377,8 +426,8 @@ function! s:eval_special_key(map, mode, options) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let evaled = eval(printf('"\%s"', a:map))
         let map_name = s:matchstr(a:map, '^<\zs[^<>]\+\ze>$')
-        let exists_named_map = maparg(s:sid_named_map(map_name), a:mode) != ''
-        let exists_macro_map = maparg(s:sid_macro_map(map_name), a:mode) != ''
+        let named_map_rhs = s:named_map.maparg(s:get_named_lhs(map_name), a:mode)
+        let macro_map_rhs = s:macro_map.maparg(s:get_macro_lhs(map_name), a:mode)
 
         " Assert map_name != ''
 
@@ -396,12 +445,12 @@ function! s:eval_special_key(map, mode, options) "{{{
             " - <Nop>
             "
             return a:map
-        elseif exists_named_map
+        elseif named_map_rhs != ''
             " Found :DefMap's mapping. Return <SID> named mapping.
-            return s:sid_named_map(map_name)
-        elseif exists_macro_map
+            return '<SID>' . s:get_named_lhs(map_name)
+        elseif macro_map_rhs != ''
             " Found :DefMacroMap's mapping. Return rhs definition.
-            return maparg(s:sid_macro_map(map_name), a:mode)
+            return macro_map_rhs
         else
             " Other character like 'a', 'b', ...
             return a:map
@@ -429,14 +478,12 @@ function! s:get_unmap_excmd(mode, options, lhs) "{{{
     \])
 endfunction "}}}
 
-function! s:sid_macro_map(map) "{{{
-    " NOTE: All macro mappings are mapped after '<SID>@'.
-    return '<SID>@' . a:map
+function! s:get_macro_lhs(map) "{{{
+    return '@' . a:map
 endfunction "}}}
 
-function! s:sid_named_map(map) "{{{
-    " NOTE: All named mappings are mapped after '<SID>$'.
-    return '<SID>$' . a:map
+function! s:get_named_lhs(map) "{{{
+    return '$' . a:map
 endfunction "}}}
 
 
