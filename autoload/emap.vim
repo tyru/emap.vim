@@ -156,6 +156,7 @@ function! s:cmd_defmacromap(q_args) "{{{
     catch /^parse error:/
         " ShowStackTrace
         call s:warn(v:exception)
+        call s:warnf("parse error: %s", a:q_args)
         return
     endtry
 
@@ -179,6 +180,7 @@ function! s:cmd_defmap(q_args) "{{{
     catch /^parse error:/
         " ShowStackTrace
         call s:warn(v:exception)
+        call s:warnf("parse error: %s", a:q_args)
         return
     endtry
 
@@ -200,6 +202,7 @@ function! s:cmd_map(q_args) "{{{
     catch /^parse error:/
         " ShowStackTrace
         call s:warn(v:exception)
+        call s:warnf("parse error: %s", a:q_args)
         return
     endtry
 
