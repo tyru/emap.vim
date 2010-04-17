@@ -473,6 +473,7 @@ function! s:eval_special_key(map, mode, options) "{{{
             return s:vimrc_snr_prefix()
         elseif named_map_rhs != ''
             " Found :DefMap's mapping. Return <SID> named mapping.
+            " XXX: Return <SNR> ?
             return '<SID>' . s:get_named_lhs(map_name)
         elseif macro_map_rhs != ''
             " Found :DefMacroMap's mapping. Return rhs definition.
