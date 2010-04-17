@@ -181,27 +181,12 @@ TODO						*emap-todo* {{{
 
 - Nested <...> expression.
 - To be hackable.
-- Add "$" prefix to `macro`.
-`macro` means expression to be expanded
-before doing mapping like lisp macro.
-
-e.g.: >
-  DefMap [n] -noremap orig q
-  Map [n] <orig><$lhs> <$lhs>
-<
-
-Usually, <...> expression is expanded to
-"<SID>@..." ("..." means given name).
-But `macro` is expanded when parsing arguments
-of ex commands like |:DefMap|, |:Map|.
 - |:DefMap| defines mapping to take arguments.
 >
     DefMap [n] -nargs=1 yank y <args>
     " This is converted to `y $`.
     Map    [n]          <yank $>
 <
-- |:Unmap| ?
-- |:DefMacroMap|
 - `leader-macro` pragma
 - |:DefOwnMap|
 >
@@ -247,7 +232,10 @@ of ex commands like |:DefMap|, |:Map|.
 - `:autocmd` like hook feature.
   - When {before,after,both} {lhs,rhs,both} is converted
 - command-line completion for commands.
-
+- Listing mappings by `Map [...] -options lhs`.
+- |:DefMapClear|
+- |:DefMacroMapClear|
+- Autoload functions correspond to ex commands.
 }}}
 ==============================================================================
 CHANGELOG						*emap-changelog* {{{
