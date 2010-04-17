@@ -289,6 +289,9 @@ function! s:parse_modes(q_args) "{{{
     let mode_arg = s:matchstr(a:q_args, '^\[[^\[\]]\+\]')
     let rest  = strpart(a:q_args, strlen(mode_arg))
     let modes = mode_arg[1:-2]
+    if modes == ''
+        throw s:parse_error("empty mode '[...]' argument")
+    endif
     return [modes, rest]
 endfunction "}}}
 
@@ -356,13 +359,29 @@ function! s:pragma_has(options, name) "{{{
     endif
 endfunction "}}}
 
-function! s:is_vim_map_option(map) "{{{
-    return a:map =~# '^<\(expr\|buffer\|silent\|special\|script\|unique\)>$'
+function! s:parse_lhs(q_args) "{{{
+    let [lhs, q_args] = s:parse_one_arg_from_q_args(a:q_args)
+    call s:validate_lhs(lhs)
+    return [lhs, q_args]
+endfunction "}}}
+
+function! s:validate_lhs(lhs) "{{{
+    if a:lhs == ''
+        throw s:parse_error('empty lhs.')
+    endif
+
+    let illegal = s:matchstr(a:lhs, '^<\(expr\|buffer\|silent\|special\|script\|unique\)>')
+    if illegal != ''
+        throw s:parse_error(printf("'%s' is :map's option. Please use -option style instead.", illegal))
+    endif
+endfunction "}}}
+
+function! s:parse_rhs(q_args) "{{{
+    return [a:q_args, '']
 endfunction "}}}
 
 function! s:parse_args(q_args) "{{{
     " NOTE: Currently :DefMap and :Map arguments are the same.
-    " TODO: More STRICT
 
     let q_args = a:q_args
 
@@ -374,16 +393,17 @@ function! s:parse_args(q_args) "{{{
     let options = s:add_pragmas(options)
 
     let q_args = s:skip_spaces(q_args)
-    let [lhs, q_args] = s:parse_one_arg_from_q_args(q_args)
-    if s:is_vim_map_option(lhs)
-        throw s:parse_error(printf("'%s' is :map's option. Please use -option style instead.", lhs))
-    endif
+    let [lhs, q_args] = s:parse_lhs(q_args)
 
     let q_args = s:skip_spaces(q_args)
-    let rhs = q_args
+    let [rhs, q_args] = s:parse_rhs(q_args)
 
-    " Assert lhs != ''
-    " Assert rhs != ''
+    " Assert q_args == ''
+
+    if rhs == ''
+        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
+        throw s:parse_error('parse error?')
+    endif
 
     return s:map_info_new(modes, options, lhs, rhs)
 endfunction "}}}
