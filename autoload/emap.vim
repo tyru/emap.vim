@@ -184,6 +184,11 @@ function! emap#load() "{{{
 
     command!
     \   -nargs=+
+    \   DefUnmap
+    \   call s:cmd_defunmap(<q-args>)
+
+    command!
+    \   -nargs=+
     \   Map
     \   call s:cmd_map(<q-args>)
 
@@ -212,6 +217,11 @@ function! s:cmd_defmacromap(q_args) "{{{
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
+
+    if map_info.rhs == ''
+        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
+        return
+    endif
 
     for m in s:filter_modes(map_info.modes, map_info.options)
         let args = [
@@ -244,6 +254,11 @@ function! s:cmd_defmap(q_args) "{{{
         return
     endtry
 
+    if map_info.rhs == ''
+        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
+        return
+    endif
+
     for m in s:filter_modes(map_info.modes, map_info.options)
         let args = [
         \   m,
@@ -264,6 +279,26 @@ function! s:cmd_defmap(q_args) "{{{
     endfor
 endfunction "}}}
 
+function! s:cmd_defunmap(q_args) "{{{
+    try
+        let map_info = s:parse_args(a:q_args)
+    catch /^parse error:/
+        call s:warn(s:get_exception())
+        return
+    endtry
+
+    for m in s:filter_modes(map_info.modes, map_info.options)
+        try
+            execute s:get_unmap_excmd(
+            \               m,
+            \               map_info.options,
+            \               s:get_snr_named_lhs(map_info.lhs))
+        catch
+            call s:warn(s:get_exception())
+        endtry
+    endfor
+endfunction "}}}
+
 function! s:cmd_map(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
@@ -272,6 +307,11 @@ function! s:cmd_map(q_args) "{{{
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
+
+    if map_info.rhs == ''
+        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
+        return
+    endif
 
     for m in s:filter_modes(map_info.modes, map_info.options)
         let args = [
@@ -425,11 +465,6 @@ function! s:parse_args(q_args) "{{{
     let [rhs, q_args] = s:parse_rhs(q_args)
 
     " Assert q_args == ''
-
-    if rhs == ''
-        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
-        throw s:parse_error('parse error?')
-    endif
 
     return s:map_info_new(modes, options, lhs, rhs)
 endfunction "}}}
