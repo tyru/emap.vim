@@ -179,6 +179,11 @@ function! emap#load() "{{{
 
     command!
     \   -nargs=+
+    \   DefMacroUnmap
+    \   call s:cmd_defmacrounmap(<q-args>)
+
+    command!
+    \   -nargs=+
     \   DefMap
     \   call s:cmd_defmap(<q-args>)
 
@@ -240,6 +245,26 @@ function! s:cmd_defmacromap(q_args) "{{{
         " Save this mapping to `s:macro_map` indivisually.
         " Because Vim can't look up lhs with <SID> correctly by maparg().
         call call(s:macro_map.map, args, s:macro_map)
+    endfor
+endfunction "}}}
+
+function! s:cmd_defmacrounmap(q_args) "{{{
+    try
+        let map_info = s:parse_args(a:q_args)
+    catch /^parse error:/
+        call s:warn(s:get_exception())
+        return
+    endtry
+
+    for m in s:filter_modes(map_info.modes, map_info.options)
+        try
+            execute s:get_unmap_excmd(
+            \               m,
+            \               map_info.options,
+            \               s:get_snr_macro_lhs(map_info.lhs))
+        catch
+            call s:warn(s:get_exception())
+        endtry
     endfor
 endfunction "}}}
 
