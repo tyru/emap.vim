@@ -27,8 +27,8 @@ Interface			|emap-interface|
   Commands			|emap-commands|
   Functions			|emap-functions|
 Pragma				|emap-pragma|
-  What is pragma	|emap-what-is-pragma|
-  Avaialabe pragmas	|emap-available-pragmas|
+  What is pragma	|emap-pragma-introduction|
+  Avaialabe pragmas	|emap-pragma-list|
     ignore-spaces	|emap-pragma-ignore-spaces|
     all				|emap-pragma-all|
 Key notation		|emap-key-notation|
