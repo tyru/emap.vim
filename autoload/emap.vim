@@ -207,6 +207,11 @@ function! s:cmd_defmacromap(q_args) "{{{
         return
     endtry
 
+    if map_info.rhs == ''
+        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
+        return
+    endif
+
     for m in s:filter_modes(map_info.modes, map_info.options)
         let args = [
         \   m,
@@ -238,6 +243,11 @@ function! s:cmd_defmap(q_args) "{{{
         return
     endtry
 
+    if map_info.rhs == ''
+        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
+        return
+    endif
+
     for m in s:filter_modes(map_info.modes, map_info.options)
         let args = [
         \   m,
@@ -266,6 +276,11 @@ function! s:cmd_map(q_args) "{{{
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
+
+    if map_info.rhs == ''
+        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
+        return
+    endif
 
     for m in s:filter_modes(map_info.modes, map_info.options)
         let args = [
@@ -415,11 +430,6 @@ function! s:parse_args(q_args) "{{{
     let [rhs, q_args] = s:parse_rhs(q_args)
 
     " Assert q_args == ''
-
-    if rhs == ''
-        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
-        throw s:parse_error('parse error?')
-    endif
 
     return s:map_info_new(modes, options, lhs, rhs)
 endfunction "}}}
