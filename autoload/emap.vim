@@ -26,6 +26,12 @@ lockvar s:GROUP_PRAGMAS
 
 let s:vimrc_sid = -1
 
+function! s:SID() "{{{
+    return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
+endfunction "}}}
+let s:EMAP_SNR = printf("<SNR>%d_", s:SID())
+lockvar s:EMAP_SNR
+
 " s:map_dict {{{
 let s:map_dict = {'stash': {}}
 
@@ -211,7 +217,7 @@ function! s:cmd_defmacromap(q_args) "{{{
         let args = [
         \   m,
         \   map_info.options,
-        \   s:get_macro_lhs(map_info.lhs),
+        \   s:get_snr_macro_lhs(map_info.lhs),
         \   emap#compile_map(map_info.rhs, m, map_info.options),
         \]
         " Do mapping with :map command.
@@ -242,7 +248,7 @@ function! s:cmd_defmap(q_args) "{{{
         let args = [
         \   m,
         \   map_info.options,
-        \   s:get_named_lhs(map_info.lhs),
+        \   s:get_snr_named_lhs(map_info.lhs),
         \   emap#compile_map(map_info.rhs, m, map_info.options),
         \]
         " Do mapping with :map command.
@@ -462,8 +468,8 @@ endfunction "}}}
 function! s:eval_special_key(map, mode, options) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let map_name = s:matchstr(a:map, '^<\zs[^<>]\+\ze>$')
-        let named_map_rhs = s:named_map.maparg(s:get_named_lhs(map_name), a:mode)
-        let macro_map_rhs = s:macro_map.maparg(s:get_macro_lhs(map_name), a:mode)
+        let named_map_rhs = s:named_map.maparg(s:get_snr_named_lhs(map_name), a:mode)
+        let macro_map_rhs = s:macro_map.maparg(s:get_snr_macro_lhs(map_name), a:mode)
 
         " Assert map_name != ''
 
@@ -471,12 +477,12 @@ function! s:eval_special_key(map, mode, options) "{{{
 
         if a:map ==# '<SID>'
             return s:vimrc_snr_prefix()
-        elseif named_map_rhs != ''
-            " Found :DefMap's mapping. Return <SID> named mapping.
-            return '<SID>' . s:get_named_lhs(map_name)
         elseif macro_map_rhs != ''
             " Found :DefMacroMap's mapping. Return rhs definition.
             return macro_map_rhs
+        elseif named_map_rhs != ''
+            " Found :DefMap's mapping. Return <SNR> named mapping.
+            return s:get_snr_named_lhs(map_name)
         else
             " Built-in key notation (:help key-notation)
             "
@@ -515,10 +521,17 @@ function! s:get_macro_lhs(map) "{{{
     return '@' . a:map
 endfunction "}}}
 
+function! s:get_snr_macro_lhs(map) "{{{
+    return s:EMAP_SNR . s:get_macro_lhs(a:map)
+endfunction "}}}
+
 function! s:get_named_lhs(map) "{{{
     return '$' . a:map
 endfunction "}}}
 
+function! s:get_snr_named_lhs(map) "{{{
+    return s:EMAP_SNR . s:get_named_lhs(a:map)
+endfunction "}}}
 
 " Mapping info object to give to plugins.
 " This will be created by `s:parse_args()`.
