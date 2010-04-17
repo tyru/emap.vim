@@ -292,10 +292,14 @@ function! s:cmd_unmap(q_args) "{{{
     endtry
 
     for m in s:filter_modes(map_info.modes, map_info.options)
-        execute s:get_unmap_excmd(
-        \               m,
-        \               map_info.options,
-        \               emap#compile_map(map_info.lhs, m, map_info.options))
+        try
+            execute s:get_unmap_excmd(
+            \               m,
+            \               map_info.options,
+            \               emap#compile_map(map_info.lhs, m, map_info.options))
+        catch
+            call s:warn(s:get_exception())
+        endtry
     endfor
 endfunction "}}}
 
