@@ -105,10 +105,35 @@ Currently no variables.
 ------------------------------------------------------------------------------
 COMMANDS					*emap-commands* {{{
 
-:Map						*:Map*
-:DefMap						*:DefMap*
+<modes> are wrapped with "[...]".
 
-(TODO Write later)
+						*:DefMacroMap*
+:DefMacroMap <modes> <options> <lhs> <rhs>
+
+						*:DefMacroUnmap*
+:DefMacroUnmap <modes> <options> <lhs>
+
+						*:DefMap*
+:DefMap <modes> <options> <lhs> <rhs>
+
+						*:DefUnmap*
+:DefUnmap <modes> <options> <lhs>
+
+						*:Map*
+:Map <modes> <options> <lhs> <rhs>
+
+						*:Unmap*
+:Unmap <modes> <options> <lhs>
+
+						*:SetPragmas*
+:SetPragmas <pragma> [<pragma> ...]
+	This is wrapper ex command for |emap#set_pragmas()|.
+	See |emap-pragma| about pragma.
+
+						*:UnsetPragmas*
+:UnsetPragmas <pragma> [<pragma> ...]
+	This is wrapper ex command for |emap#unset_pragmas()|.
+	See |emap-pragma| about pragma.
 
 }}}
 ------------------------------------------------------------------------------
