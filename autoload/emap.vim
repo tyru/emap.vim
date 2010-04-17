@@ -443,7 +443,6 @@ function! emap#compile_map(map, mode, ...) "{{{
     " TODO Parse nested key notation.
     let keys = s:split_to_keys(a:map)
 
-    " Ignore whitespaces.
     if s:pragma_has(options, s:PRAGMA_IGNORE_SPACES)
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
@@ -462,7 +461,6 @@ endfunction "}}}
 
 function! s:eval_special_key(map, mode, options) "{{{
     if a:map =~# '^<[^<>]\+>$'
-        let evaled = eval(printf('"\%s"', a:map))
         let map_name = s:matchstr(a:map, '^<\zs[^<>]\+\ze>$')
         let named_map_rhs = s:named_map.maparg(s:get_named_lhs(map_name), a:mode)
         let macro_map_rhs = s:macro_map.maparg(s:get_macro_lhs(map_name), a:mode)
@@ -473,16 +471,6 @@ function! s:eval_special_key(map, mode, options) "{{{
 
         if a:map ==# '<SID>'
             return s:vimrc_snr_prefix()
-        elseif evaled !=# a:map
-            " Built-in key notation (:help key-notation)
-            "
-            " XXX: Some keys are not changed?
-            " ("\<EOL>" == "<EOL>")
-            "
-            " - <EOL>
-            " - <Nop>
-            "
-            return a:map
         elseif named_map_rhs != ''
             " Found :DefMap's mapping. Return <SID> named mapping.
             return '<SID>' . s:get_named_lhs(map_name)
@@ -490,10 +478,17 @@ function! s:eval_special_key(map, mode, options) "{{{
             " Found :DefMacroMap's mapping. Return rhs definition.
             return macro_map_rhs
         else
-            " Other character like 'a', 'b', ...
+            " Built-in key notation (:help key-notation)
+            "
+            " Some keys are not changed despite built-in key notation.
+            " ("\<EOL>" == "<EOL>")
+            "
+            " - <EOL>
+            " - <Nop>
             return a:map
         endif
     else
+        " Other character like 'a', 'b', ...
         return a:map
     endif
 endfunction "}}}
