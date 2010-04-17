@@ -49,11 +49,13 @@ INTRODUCTION						*emap-introduction* {{{
 	call emap#load()
 	call emap#set_sid(s:SID())
 
+
 	DefMap [nvo] -noremap clipboard "+
 	DefMap [nvo] -noremap primary   "*
 	DefMap [nvo] -noremap blackhole "_
 	DefMap [nvo] -noremap delete-char x
 	DefMap [nvo] -noremap delete* d
+
 
 	" `SetPragmas ignores-spaces` ignores whitespaces in rhs.
 	" See |emap-pragma| for the details.
@@ -69,14 +71,17 @@ INTRODUCTION						*emap-introduction* {{{
 	Map [nvo] x        <blackhole> <delete-char>
 	Map [nvo] <Space>d <blackhole> <delete*>
 
+	Map [nvo] -noremap callit :<C-u>call<Space><SID>my_func()<CR>
+
 	UnsetPragmas ignore-spaces
 
-	Map [nvo] -noremap <Leader>e =
+	Map [nvo] -noremap callit :<C-u>call <SID>my_func()<CR>
 
-	Map [i] -noremap -expr <SID>(bs-ctrl-])    getline('.')[col('.') - 2] ==# "\<C-]>" ? "\<BS>" : ''
-	Map [i]                <C-]>               <C-]><SID>(bs-ctrl-])
-	Map [c] -noremap -expr <SID>(bs-ctrl-])    getcmdline()[getcmdpos() - 2] ==# "\<C-]>" ? "\<BS>" : ''
-	Map [c]                <C-]>               <C-]><SID>(bs-ctrl-])
+
+	DefMap [i] -noremap -expr bs-ctrl-] getline('.')[col('.') - 2] ==# "\<C-]>" ? "\<BS>" : ''
+	DefMap [c] -noremap -expr bs-ctrl-] getcmdline()[getcmdpos() - 2] ==# "\<C-]>" ? "\<BS>" : ''
+	Map   [ic]                <C-]>     <C-]><bs-ctrl-]>
+
 
 	" `-` seems like option. `--` to separate options and lhs.
 	Map [n] -noremap    + <C-a>
