@@ -34,8 +34,6 @@ function! s:map_dict_new() "{{{
 endfunction "}}}
 
 function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
-    " TODO Throw an error when <unique> is specified.
-
     let self.stash[a:mode . a:lhs] =
     \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
 endfunction "}}}
@@ -141,6 +139,10 @@ function! s:argument_error(msg) "{{{
     return 'argument error: ' . a:msg
 endfunction "}}}
 
+function! s:get_exception() "{{{
+    return substitute(v:exception, '^Vim(\w\+):', '', '')
+endfunction "}}}
+
 
 " Mode
 function! s:is_mode_char(char) "{{{
@@ -200,7 +202,7 @@ function! s:cmd_defmacromap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(v:exception)
+        call s:warn(s:get_exception())
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
@@ -212,11 +214,16 @@ function! s:cmd_defmacromap(q_args) "{{{
         \   s:get_macro_lhs(map_info.lhs),
         \   emap#compile_map(map_info.rhs, m, map_info.options),
         \]
+        " Do mapping with :map command.
+        try
+            execute call('s:get_map_excmd', args)
+        catch
+            call s:warn(s:get_exception())
+            continue
+        endtry
         " Save this mapping to `s:macro_map` indivisually.
         " Because Vim can't look up lhs with <SID> correctly by maparg().
-        call    call(s:macro_map.map, args, s:macro_map)
-        " Do mapping with :map command.
-        execute call('s:get_map_excmd', args)
+        call call(s:macro_map.map, args, s:macro_map)
     endfor
 endfunction "}}}
 
@@ -226,7 +233,7 @@ function! s:cmd_defmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(v:exception)
+        call s:warn(s:get_exception())
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
@@ -238,11 +245,16 @@ function! s:cmd_defmap(q_args) "{{{
         \   s:get_named_lhs(map_info.lhs),
         \   emap#compile_map(map_info.rhs, m, map_info.options),
         \]
+        " Do mapping with :map command.
+        try
+            execute call('s:get_map_excmd', args)
+        catch
+            call s:warn(s:get_exception())
+            continue
+        endtry
         " Save this mapping to `s:macro_map` indivisually.
         " Because Vim can't look up lhs with <SID> correctly by maparg().
-        call    call(s:named_map.map, args, s:named_map)
-        " Do mapping with :map command.
-        execute call('s:get_map_excmd', args)
+        call call(s:named_map.map, args, s:named_map)
     endfor
 endfunction "}}}
 
@@ -250,7 +262,7 @@ function! s:cmd_map(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(v:exception)
+        call s:warn(s:get_exception())
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
@@ -263,7 +275,11 @@ function! s:cmd_map(q_args) "{{{
         \   emap#compile_map(map_info.rhs, m, map_info.options),
         \]
         " Do mapping with :map command.
-        execute call('s:get_map_excmd', args)
+        try
+            execute call('s:get_map_excmd', args)
+        catch
+            call s:warn(s:get_exception())
+        endtry
     endfor
 endfunction "}}}
 
@@ -271,7 +287,7 @@ function! s:cmd_unmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(v:exception)
+        call s:warn(s:get_exception())
         return
     endtry
 
