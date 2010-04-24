@@ -266,6 +266,7 @@ TODO						*emap-todo* {{{
 - |:DefMapClear|
 - |:DefMacroMapClear|
 - Autoload functions correspond to ex commands.
+- Show warnings when <user-defined-map> is not defined, nor built-in keys.
 }}}
 ==============================================================================
 CHANGELOG						*emap-changelog* {{{
