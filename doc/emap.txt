@@ -267,6 +267,8 @@ TODO						*emap-todo* {{{
 - |:DefMacroMapClear|
 - Autoload functions correspond to ex commands.
 - Show warnings when <user-defined-map> is not defined, nor built-in keys.
+- Passing "-noremap" to |:DefMacroMap| doesn't make sense.
+  should show the warning.
 }}}
 ==============================================================================
 CHANGELOG						*emap-changelog* {{{
