@@ -63,6 +63,17 @@ lockvar s:map_dict
 
 let s:named_map = s:map_dict_new()
 let s:macro_map = s:map_dict_new()
+
+let s:ex_commands = {
+\   'DefMacroMap': {'opt': '-nargs=+', 'def': 'call s:cmd_defmacromap(<q-args>)'},
+\   'DefMacroUnmap': {'opt': '-nargs=+', 'def': 'call s:cmd_defmacrounmap(<q-args>)'},
+\   'DefMap': {'opt': '-nargs=+', 'def': 'call s:cmd_defmap(<q-args>)'},
+\   'DefUnmap': {'opt': '-nargs=+', 'def': 'call s:cmd_defunmap(<q-args>)'},
+\   'Map': {'opt': '-nargs=+', 'def': 'call s:cmd_map(<q-args>)'},
+\   'Unmap': {'opt': '-nargs=+', 'def': 'call s:cmd_unmap(<q-args>)'},
+\   'SetPragmas': {'opt': '-bar -nargs=+', 'def': 'call emap#set_pragmas([<f-args>])'},
+\   'UnsetPragmas': {'opt': '-bar -nargs=+', 'def': 'call emap#unset_pragmas([<f-args>])'},
+\}
 " }}}
 
 " Functions {{{
@@ -169,47 +180,37 @@ endfunction "}}}
 
 
 " For ex commands
-function! emap#load() "{{{
+function! emap#load(...) "{{{
     " TODO autoload functions for ex commands.
 
-    command!
-    \   -nargs=+
-    \   DefMacroMap
-    \   call s:cmd_defmacromap(<q-args>)
+    for cmdname in (a:0 ? a:000 : keys(s:ex_commands))
+        if type(cmdname) == type([])
+            if len(cmdname) < 2
+                echohl ErrorMsg
+                echomsg 'Invalid arguments for emap#load(). See :help emap#load()'
+                echohl None
+                return
+            endif
+            call s:define_command(cmdname[0], 1, cmdname[1])
+        else
+            call s:define_command(cmdname, 1)
+        endif
+    endfor
+endfunction "}}}
 
-    command!
-    \   -nargs=+
-    \   DefMacroUnmap
-    \   call s:cmd_defmacrounmap(<q-args>)
+function! s:define_command(cmdname, force, ...) "{{{
+    if !has_key(s:ex_commands, a:cmdname)
+        echohl ErrorMsg
+        echomsg a:cmdname . ": Unknown command"
+        echohl None
+        return
+    endif
 
-    command!
-    \   -nargs=+
-    \   DefMap
-    \   call s:cmd_defmap(<q-args>)
-
-    command!
-    \   -nargs=+
-    \   DefUnmap
-    \   call s:cmd_defunmap(<q-args>)
-
-    command!
-    \   -nargs=+
-    \   Map
-    \   call s:cmd_map(<q-args>)
-
-    command!
-    \   -nargs=+
-    \   Unmap
-    \   call s:cmd_unmap(<q-args>)
-
-    command!
-    \   -bar -nargs=+
-    \   SetPragmas
-    \   call emap#set_pragmas([<f-args>])
-    command!
-    \   -bar -nargs=+
-    \   UnsetPragmas
-    \   call emap#unset_pragmas([<f-args>])
+    execute
+    \   'command' . (a:force ? '!' : '')
+    \   s:ex_commands[a:cmdname].opt
+    \   (a:0 ? a:1 : a:cmdname)
+    \   s:ex_commands[a:cmdname].def
 endfunction "}}}
 
 function! s:cmd_defmacromap(q_args) "{{{
