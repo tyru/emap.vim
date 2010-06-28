@@ -220,7 +220,7 @@ function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warnf("parse error: %s - %s", string(a:q_args), v:exception)
+        call s:warnf("%s: parse error: %s - %s", a:cmdname, string(a:q_args), v:exception)
         return
     endtry
 
@@ -251,7 +251,7 @@ function! s:unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn()
+        call s:warnf("%s: parse error: %s - %s", a:cmdname, string(a:q_args), v:exception)
         return
     endtry
 
