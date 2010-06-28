@@ -388,7 +388,7 @@ endfunction "}}}
 
 function! s:parse_options(q_args) "{{{
     let q_args = a:q_args
-    let opt = {}
+    let opt = s:get_default_options()
 
     while !empty(q_args)
         let [a, rest] = s:parse_one_arg_from_q_args(q_args)
@@ -402,8 +402,8 @@ function! s:parse_options(q_args) "{{{
         elseif a[0] ==# '-'
             if a[1:] ==# 'expr'
                 let opt.expr = 1
-            elseif a[1:] ==# 'noremap'
-                let opt.noremap = 1
+            elseif a[1:] ==# 'remap'
+                let opt.noremap = 0
             elseif a[1:] ==# 'buffer'
                 let opt.buffer = 1
             elseif a[1:] ==# 'silent'
@@ -412,8 +412,8 @@ function! s:parse_options(q_args) "{{{
                 let opt.special = 1
             elseif a[1:] ==# 'script'
                 let opt.script = 1
-            elseif a[1:] ==# 'unique'
-                let opt.unique = 1
+            elseif a[1:] ==# 'force'
+                let opt.unique = 0
             else
                 throw s:parse_error(printf("unknown option '%s'.", a))
             endif
@@ -421,6 +421,19 @@ function! s:parse_options(q_args) "{{{
     endwhile
 
     return [opt, q_args]
+endfunction "}}}
+
+function! s:get_default_options() "{{{
+    " In emap, <unique> and noremap is default.
+    return {
+    \   'expr': 0,
+    \   'buffer': 0,
+    \   'silent': 0,
+    \   'special': 0,
+    \   'script': 0,
+    \   'unique': 1,
+    \   'noremap': 1,
+    \}
 endfunction "}}}
 
 function! s:add_pragmas(options) "{{{
