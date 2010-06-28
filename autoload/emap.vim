@@ -546,7 +546,7 @@ function! s:map_info.has_pragma(name) dict "{{{
     if a:name ==# s:PRAGMA_IGNORE_SPACES
         " Do not apply `ignore-spaces` when -`expr` is specified.
         return get(self.pragmas, a:name, 0)
-        \   && get(self.options, 'expr', 0)
+        \   && !get(self.options, 'expr', 0)
     else
         return get(self.pragmas, a:name, 0)
     endif
