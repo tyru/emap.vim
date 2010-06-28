@@ -484,7 +484,7 @@ function! emap#compile_map(map, mode, ...) "{{{
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
 
-    return join(map(keys, 's:eval_special_key(v:val, a:mode, options)'), '')
+    return join(map(keys, 's:eval_special_key(v:val, a:mode)'), '')
 endfunction "}}}
 
 function! s:split_to_keys(map)  "{{{
@@ -495,7 +495,7 @@ function! s:split_to_keys(map)  "{{{
     return split(a:map, '\(<[^<>]\+>\|.\)\zs')
 endfunction "}}}
 
-function! s:eval_special_key(map, mode, options) "{{{
+function! s:eval_special_key(map, mode) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let map_name = s:matchstr(a:map, '^<\zs[^<>]\+\ze>$')
         let named_map_rhs = s:named_map.maparg(s:get_snr_named_lhs(map_name), a:mode)
