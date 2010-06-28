@@ -256,11 +256,14 @@ function! s:cmd_defmacrounmap(q_args) "{{{
     endtry
 
     for m in s:filter_modes(map_info.modes, map_info.options)
+        let args = [
+        \   m,
+        \   map_info.options,
+        \   s:get_snr_macro_lhs(map_info.lhs),
+        \]
         try
-            execute s:get_unmap_excmd(
-            \               m,
-            \               map_info.options,
-            \               s:get_snr_macro_lhs(map_info.lhs))
+            execute call('s:get_unmap_excmd', args)
+            call call(s:macro_map.unmap, args, s:macro_map)
         catch
             call s:warn()
         endtry
@@ -307,11 +310,14 @@ function! s:cmd_defunmap(q_args) "{{{
     endtry
 
     for m in s:filter_modes(map_info.modes, map_info.options)
+        let args = [
+        \   m,
+        \   map_info.options,
+        \   s:get_snr_named_lhs(map_info.lhs),
+        \]
         try
-            execute s:get_unmap_excmd(
-            \               m,
-            \               map_info.options,
-            \               s:get_snr_named_lhs(map_info.lhs))
+            execute call('s:get_unmap_excmd', args)
+            call call(s:named_map.unmap, args, s:named_map)
         catch
             call s:warn()
         endtry
