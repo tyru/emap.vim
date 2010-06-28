@@ -334,20 +334,15 @@ function! s:cmd_map(q_args) "{{{
         return
     endtry
 
-    if map_info.rhs == ''
-        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
-        return
-    endif
-
     for m in s:filter_modes(map_info.modes, map_info.options)
         let args = [
         \   m,
         \   map_info.options,
         \   emap#compile_map(map_info.lhs, m, map_info.options),
-        \   emap#compile_map(map_info.rhs, m, map_info.options),
+        \   (map_info.rhs == '' ? '' : emap#compile_map(map_info.rhs, m, map_info.options)),
         \]
-        " Do mapping with :map command.
         try
+            " List or register mappings with :map command.
             execute call('s:get_map_excmd', args)
         catch
             call s:warn()
