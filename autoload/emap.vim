@@ -248,6 +248,30 @@ function! s:map_command(q_args, convert_lhs_fn, dict_map) "{{{
         endif
     endfor
 endfunction "}}}
+function! s:unmap_command(q_args, convert_lhs_fn, dict_map) "{{{
+    try
+        let map_info = s:parse_args(a:q_args)
+    catch /^parse error:/
+        call s:warn()
+        return
+    endtry
+
+    for m in s:filter_modes(map_info.modes, map_info.options)
+        let args = [
+        \   m,
+        \   map_info.options,
+        \   {a:convert_lhs_fn}(m, map_info),
+        \]
+        try
+            execute call('s:get_unmap_excmd', args)
+            if !empty(a:dict_map)
+                call call(a:dict_map.unmap, args, a:dict_map)
+            endif
+        catch
+            call s:warn()
+        endtry
+    endfor
+endfunction "}}}
 
 function! s:convert_defmap(mode, map_info) "{{{
     return s:get_snr_named_lhs(a:map_info.lhs)
@@ -272,67 +296,13 @@ endfunction "}}}
 
 
 function! s:cmd_defmacrounmap(q_args) "{{{
-    try
-        let map_info = s:parse_args(a:q_args)
-    catch /^parse error:/
-        call s:warn()
-        return
-    endtry
-
-    for m in s:filter_modes(map_info.modes, map_info.options)
-        let args = [
-        \   m,
-        \   map_info.options,
-        \   s:get_snr_macro_lhs(map_info.lhs),
-        \]
-        try
-            execute call('s:get_unmap_excmd', args)
-            call call(s:macro_map.unmap, args, s:macro_map)
-        catch
-            call s:warn()
-        endtry
-    endfor
+    return s:unmap_command(a:q_args, 's:convert_defmacromap', s:macro_map)
 endfunction "}}}
 function! s:cmd_defunmap(q_args) "{{{
-    try
-        let map_info = s:parse_args(a:q_args)
-    catch /^parse error:/
-        call s:warn()
-        return
-    endtry
-
-    for m in s:filter_modes(map_info.modes, map_info.options)
-        let args = [
-        \   m,
-        \   map_info.options,
-        \   s:get_snr_named_lhs(map_info.lhs),
-        \]
-        try
-            execute call('s:get_unmap_excmd', args)
-            call call(s:named_map.unmap, args, s:named_map)
-        catch
-            call s:warn()
-        endtry
-    endfor
+    return s:unmap_command(a:q_args, 's:convert_defmap', s:named_map)
 endfunction "}}}
 function! s:cmd_unmap(q_args) "{{{
-    try
-        let map_info = s:parse_args(a:q_args)
-    catch /^parse error:/
-        call s:warn()
-        return
-    endtry
-
-    for m in s:filter_modes(map_info.modes, map_info.options)
-        try
-            execute s:get_unmap_excmd(
-            \               m,
-            \               map_info.options,
-            \               emap#compile_map(map_info.lhs, m, map_info.options))
-        catch
-            call s:warn()
-        endtry
-    endfor
+    return s:unmap_command(a:q_args, 's:convert_map', {})
 endfunction "}}}
 
 
