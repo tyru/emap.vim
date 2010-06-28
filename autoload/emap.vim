@@ -275,17 +275,12 @@ function! s:cmd_defmap(q_args) "{{{
         return
     endtry
 
-    if map_info.rhs == ''
-        call s:warn('Listing mappings with `Map [...] lhs` is not implemented.')
-        return
-    endif
-
     for m in s:filter_modes(map_info.modes, map_info.options)
         let args = [
         \   m,
         \   map_info.options,
         \   s:get_snr_named_lhs(map_info.lhs),
-        \   emap#compile_map(map_info.rhs, m, map_info.options),
+        \   (map_info.rhs == '' ? '' : emap#compile_map(map_info.rhs, m, map_info.options)),
         \]
         " Do mapping with :map command.
         try
