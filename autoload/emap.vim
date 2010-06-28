@@ -575,7 +575,19 @@ function! s:map_info_new(modes, options, lhs, rhs) "{{{
         let obj[varname] = deepcopy(a:[varname])
     endfor
 
+    let obj.pragmas = deepcopy(s:pragmas)
+
     return obj
+endfunction "}}}
+
+function! s:map_info.has_pragma(name) dict "{{{
+    if a:name ==# s:PRAGMA_IGNORE_SPACES
+        " Do not apply `ignore-spaces` when -`expr` is specified.
+        return get(self.pragmas, a:name, 0)
+        \   && get(self.options, 'expr', 0)
+    else
+        return get(self.pragmas, a:name, 0)
+    endif
 endfunction "}}}
 
 lockvar s:map_info
