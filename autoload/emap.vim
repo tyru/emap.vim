@@ -558,7 +558,10 @@ function! s:map_info.get_each_modes(...) dict "{{{
         if s:is_mode_char(m)
             call add(ret, m)
         elseif self.has_pragma(s:PRAGMA_WARNINGS_MODE)
-            call s:errorf("'%s' is not available mode.", m)
+            echohl WarningMsg
+            echomsg "'" . m "' is not available mode."
+            echohl None
+            sleep 1
         endif
     endfor
     return ret
