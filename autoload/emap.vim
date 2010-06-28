@@ -237,15 +237,14 @@ function! s:map_command(q_args, convert_lhs_fn, dict_map) "{{{
         try
             " List or register mappings with :map command.
             execute call('s:get_map_excmd', args)
+            " Save this mapping to `a:dict_map` indivisually.
+            " Because Vim can't look up lhs with <SID> correctly by maparg().
+            if !empty(a:dict_map)
+                call call(a:dict_map.map, args, a:dict_map)
+            endif
         catch
             call s:warn()
-            continue
         endtry
-        " Save this mapping to `s:macro_map` indivisually.
-        " Because Vim can't look up lhs with <SID> correctly by maparg().
-        if !empty(a:dict_map)
-            call call(a:dict_map.map, args, a:dict_map)
-        endif
     endfor
 endfunction "}}}
 function! s:unmap_command(q_args, convert_lhs_fn, dict_map) "{{{
