@@ -216,14 +216,11 @@ function! s:define_command(cmdname, force, ...) "{{{
     \   s:ex_commands[a:cmdname].def
 endfunction "}}}
 
-function! s:cmd_defmacromap(q_args) "{{{
-    " Assert len(a:q_args) >= 3
-
+function! s:map_command(q_args, convert_lhs_fn, dict_map) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn()
-        call s:warnf("parse error: %s", a:q_args)
+        call s:warnf("parse error: %s - %s", string(a:q_args), v:exception)
         return
     endtry
 
@@ -234,11 +231,11 @@ function! s:cmd_defmacromap(q_args) "{{{
         let args = [
         \   m,
         \   map_info.options,
-        \   s:get_snr_macro_lhs(map_info.lhs),
+        \   {a:convert_lhs_fn}(m, map_info),
         \   (map_info.rhs == '' ? '' : emap#compile_map(map_info.rhs, m, map_info.options)),
         \]
-        " Do mapping with :map command.
         try
+            " List or register mappings with :map command.
             execute call('s:get_map_excmd', args)
         catch
             call s:warn()
@@ -246,8 +243,24 @@ function! s:cmd_defmacromap(q_args) "{{{
         endtry
         " Save this mapping to `s:macro_map` indivisually.
         " Because Vim can't look up lhs with <SID> correctly by maparg().
-        call call(s:macro_map.map, args, s:macro_map)
+        if !empty(a:dict_map)
+            call call(a:dict_map.map, args, a:dict_map)
+        endif
     endfor
+endfunction "}}}
+
+function! s:convert_defmap(mode, map_info) "{{{
+    return s:get_snr_named_lhs(a:map_info.lhs)
+endfunction "}}}
+function! s:convert_defmacromap(mode, map_info) "{{{
+    return s:get_snr_macro_lhs(a:map_info.lhs)
+endfunction "}}}
+function! s:convert_map(mode, map_info) "{{{
+    return emap#compile_map(a:map_info.lhs, a:mode, a:map_info.options)
+endfunction "}}}
+
+function! s:cmd_defmacromap(q_args) "{{{
+    return s:map_command(a:q_args, 's:convert_defmacromap', s:macro_map)
 endfunction "}}}
 
 function! s:cmd_defmacrounmap(q_args) "{{{
@@ -274,37 +287,7 @@ function! s:cmd_defmacrounmap(q_args) "{{{
 endfunction "}}}
 
 function! s:cmd_defmap(q_args) "{{{
-    " Assert len(a:q_args) >= 3
-
-    try
-        let map_info = s:parse_args(a:q_args)
-    catch /^parse error:/
-        call s:warn()
-        call s:warnf("parse error: %s", a:q_args)
-        return
-    endtry
-
-    for m in s:filter_modes(
-    \   (map_info.modes != '' ? map_info.modes : 'nvoicxsl'),
-    \   map_info.options
-    \)
-        let args = [
-        \   m,
-        \   map_info.options,
-        \   s:get_snr_named_lhs(map_info.lhs),
-        \   (map_info.rhs == '' ? '' : emap#compile_map(map_info.rhs, m, map_info.options)),
-        \]
-        " Do mapping with :map command.
-        try
-            execute call('s:get_map_excmd', args)
-        catch
-            call s:warn()
-            continue
-        endtry
-        " Save this mapping to `s:macro_map` indivisually.
-        " Because Vim can't look up lhs with <SID> correctly by maparg().
-        call call(s:named_map.map, args, s:named_map)
-    endfor
+    return s:map_command(a:q_args, 's:convert_defmap', s:named_map)
 endfunction "}}}
 
 function! s:cmd_defunmap(q_args) "{{{
@@ -331,31 +314,7 @@ function! s:cmd_defunmap(q_args) "{{{
 endfunction "}}}
 
 function! s:cmd_map(q_args) "{{{
-    try
-        let map_info = s:parse_args(a:q_args)
-    catch /^parse error:/
-        call s:warn()
-        call s:warnf("parse error: %s", a:q_args)
-        return
-    endtry
-
-    for m in s:filter_modes(
-    \   (map_info.modes != '' ? map_info.modes : 'nvoicxsl'),
-    \   map_info.options
-    \)
-        let args = [
-        \   m,
-        \   map_info.options,
-        \   emap#compile_map(map_info.lhs, m, map_info.options),
-        \   (map_info.rhs == '' ? '' : emap#compile_map(map_info.rhs, m, map_info.options)),
-        \]
-        try
-            " List or register mappings with :map command.
-            execute call('s:get_map_excmd', args)
-        catch
-            call s:warn()
-        endtry
-    endfor
+    return s:map_command(a:q_args, 's:convert_map', {})
 endfunction "}}}
 
 function! s:cmd_unmap(q_args) "{{{
