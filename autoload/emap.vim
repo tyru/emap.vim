@@ -91,18 +91,18 @@ endfunction "}}}
 
 
 " Utilities
-function! s:warn(...) "{{{
+function! s:error(...) "{{{
     if a:0
-        echohl WarningMsg
+        echohl ErrorMsg
         echomsg join(a:000)
         echohl None
     else
-        call s:warn(substitute(v:exception, '^Vim(\w\+):', '', ''))
+        call s:error(substitute(v:exception, '^Vim(\w\+):', '', ''))
     endif
 endfunction "}}}
 
-function! s:warnf(msg, ...) "{{{
-    call s:warn(call('printf', [a:msg] + a:000))
+function! s:errorf(msg, ...) "{{{
+    call s:error(call('printf', [a:msg] + a:000))
 endfunction "}}}
 
 function! s:each_char(str) "{{{
@@ -175,7 +175,7 @@ function! s:filter_modes(modes, options) "{{{
         if s:is_mode_char(m)
             call add(ret, m)
         elseif s:pragma_has(a:options, s:PRAGMA_WARNINGS_MODE)
-            call s:warnf("'%s' is not available mode.", m)
+            call s:errorf("'%s' is not available mode.", m)
         endif
     endfor
     return ret
@@ -243,7 +243,7 @@ function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
                 call call(a:dict_map.map, args, a:dict_map)
             endif
         catch
-            call s:warn()
+            call s:error()
         endtry
     endfor
 endfunction "}}}
@@ -267,7 +267,7 @@ function! s:unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
                 call call(a:dict_map.unmap, args, a:dict_map)
             endif
         catch
-            call s:warn()
+            call s:error()
         endtry
     endfor
 endfunction "}}}
@@ -581,7 +581,7 @@ lockvar s:map_info
 function! emap#set_sid(sid) "{{{
     let sid = a:sid + 0
     if sid ==# 0
-        call s:warn(s:argument_error("Invalid SID."))
+        call s:error(s:argument_error("Invalid SID."))
         return
     endif
     let s:vimrc_sid = sid
@@ -591,7 +591,7 @@ function! emap#set_sid_from_sfile(sfile) "{{{
     let sid = s:get_sid_from_sfile(a:sfile)
     if sid == ''
         let msg = printf("emap#set_sid_from_sfile(): '%s' is not loaded yet.", a:sfile)
-        call s:warn(s:argument_error(msg))
+        call s:error(s:argument_error(msg))
         return
     endif
     call emap#set_sid(sid)
@@ -616,7 +616,7 @@ endfunction "}}}
 
 function! s:vimrc_snr_prefix() "{{{
     if s:vimrc_sid ==# -1
-        call s:warn(
+        call s:error(
         \   "Your SID is not set.",
         \   "Please set by emap#set_sid()",
         \   "or emap#set_sid_from_sfile().",
@@ -662,7 +662,7 @@ endfunction "}}}
 function! emap#set_pragmas(pragmas) "{{{
     let pragmas = s:convert_pragmas(a:pragmas)
     if !s:is_valid_pragmas(pragmas)
-        call s:warn(s:argument_error('emap#set_pragmas(): invalid pragmas'))
+        call s:error(s:argument_error('emap#set_pragmas(): invalid pragmas'))
         return
     endif
 
@@ -674,7 +674,7 @@ endfunction "}}}
 function! emap#unset_pragmas(pragmas) "{{{
     let pragmas = s:convert_pragmas(a:pragmas)
     if !s:is_valid_pragmas(pragmas)
-        call s:warn(s:argument_error('emap#unset_pragmas(): invalid pragmas'))
+        call s:error(s:argument_error('emap#unset_pragmas(): invalid pragmas'))
         return
     endif
 
