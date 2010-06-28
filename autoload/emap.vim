@@ -205,18 +205,6 @@ function! s:get_all_modes() "{{{
     return 'nvoiclxs'
 endfunction "}}}
 
-function! s:filter_modes(modes, options) "{{{
-    let ret = []
-    for m in s:each_char(a:modes)
-        if s:is_mode_char(m)
-            call add(ret, m)
-        elseif s:pragma_has(a:options, s:PRAGMA_WARNINGS_MODE)
-            call s:errorf("'%s' is not available mode.", m)
-        endif
-    endfor
-    return ret
-endfunction "}}}
-
 
 " For ex commands
 function! emap#load(...) "{{{
@@ -260,10 +248,7 @@ function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         return
     endtry
 
-    for m in s:filter_modes(
-    \   (map_info.modes != '' ? map_info.modes : s:get_all_modes()),
-    \   map_info.options
-    \)
+    for m in map_info.get_each_modes(s:get_all_modes())
         let args = [
         \   m,
         \   map_info.options,
@@ -291,7 +276,7 @@ function! s:unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         return
     endtry
 
-    for m in s:filter_modes(map_info.modes, map_info.options)
+    for m in map_info.get_each_modes()
         let args = [
         \   m,
         \   map_info.options,
@@ -588,6 +573,18 @@ function! s:map_info.has_pragma(name) dict "{{{
     else
         return get(self.pragmas, a:name, 0)
     endif
+endfunction "}}}
+
+function! s:map_info.get_each_modes(...) dict "{{{
+    let ret = []
+    for m in (a:0 && self.modes == '' ? a:1 : s:each_char(self.modes))
+        if s:is_mode_char(m)
+            call add(ret, m)
+        elseif self.has_pragma(s:PRAGMA_WARNINGS_MODE)
+            call s:errorf("'%s' is not available mode.", m)
+        endif
+    endfor
+    return ret
 endfunction "}}}
 
 lockvar s:map_info
