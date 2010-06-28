@@ -259,9 +259,17 @@ function! s:convert_map(mode, map_info) "{{{
     return emap#compile_map(a:map_info.lhs, a:mode, a:map_info.options)
 endfunction "}}}
 
+
 function! s:cmd_defmacromap(q_args) "{{{
     return s:map_command(a:q_args, 's:convert_defmacromap', s:macro_map)
 endfunction "}}}
+function! s:cmd_defmap(q_args) "{{{
+    return s:map_command(a:q_args, 's:convert_defmap', s:named_map)
+endfunction "}}}
+function! s:cmd_map(q_args) "{{{
+    return s:map_command(a:q_args, 's:convert_map', {})
+endfunction "}}}
+
 
 function! s:cmd_defmacrounmap(q_args) "{{{
     try
@@ -285,11 +293,6 @@ function! s:cmd_defmacrounmap(q_args) "{{{
         endtry
     endfor
 endfunction "}}}
-
-function! s:cmd_defmap(q_args) "{{{
-    return s:map_command(a:q_args, 's:convert_defmap', s:named_map)
-endfunction "}}}
-
 function! s:cmd_defunmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
@@ -312,11 +315,6 @@ function! s:cmd_defunmap(q_args) "{{{
         endtry
     endfor
 endfunction "}}}
-
-function! s:cmd_map(q_args) "{{{
-    return s:map_command(a:q_args, 's:convert_map', {})
-endfunction "}}}
-
 function! s:cmd_unmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
