@@ -201,6 +201,9 @@ endfunction "}}}
 function! s:is_mode_char(char) "{{{
     return a:char =~# '^[nvoiclxs]$'
 endfunction "}}}
+function! s:get_all_modes() "{{{
+    return 'nvoiclxs'
+endfunction "}}}
 
 function! s:filter_modes(modes, options) "{{{
     let ret = []
@@ -258,7 +261,7 @@ function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
     endtry
 
     for m in s:filter_modes(
-    \   (map_info.modes != '' ? map_info.modes : 'nvoicxsl'),
+    \   (map_info.modes != '' ? map_info.modes : s:get_all_modes()),
     \   map_info.options
     \)
         let args = [
