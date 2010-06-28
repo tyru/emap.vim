@@ -68,12 +68,12 @@ let s:named_map = s:map_dict_new()
 let s:macro_map = s:map_dict_new()
 
 let s:ex_commands = {
-\   'DefMacroMap': {'opt': '-nargs=+', 'def': 'call s:cmd_defmacromap(<q-args>)'},
-\   'DefMacroUnmap': {'opt': '-nargs=+', 'def': 'call s:cmd_defmacrounmap(<q-args>)'},
-\   'DefMap': {'opt': '-nargs=+', 'def': 'call s:cmd_defmap(<q-args>)'},
-\   'DefUnmap': {'opt': '-nargs=+', 'def': 'call s:cmd_defunmap(<q-args>)'},
-\   'Map': {'opt': '-nargs=+', 'def': 'call s:cmd_map(<q-args>)'},
-\   'Unmap': {'opt': '-nargs=+', 'def': 'call s:cmd_unmap(<q-args>)'},
+\   'DefMacroMap': {'opt': '-nargs=*', 'def': 'call s:cmd_defmacromap(<q-args>)'},
+\   'DefMacroUnmap': {'opt': '-nargs=*', 'def': 'call s:cmd_defmacrounmap(<q-args>)'},
+\   'DefMap': {'opt': '-nargs=*', 'def': 'call s:cmd_defmap(<q-args>)'},
+\   'DefUnmap': {'opt': '-nargs=*', 'def': 'call s:cmd_defunmap(<q-args>)'},
+\   'Map': {'opt': '-nargs=*', 'def': 'call s:cmd_map(<q-args>)'},
+\   'Unmap': {'opt': '-nargs=*', 'def': 'call s:cmd_unmap(<q-args>)'},
 \   'SetPragmas': {'opt': '-bar -nargs=+', 'def': 'call emap#set_pragmas([<f-args>])'},
 \   'UnsetPragmas': {'opt': '-bar -nargs=+', 'def': 'call emap#unset_pragmas([<f-args>])'},
 \}
@@ -227,7 +227,10 @@ function! s:cmd_defmacromap(q_args) "{{{
         return
     endtry
 
-    for m in s:filter_modes(map_info.modes, map_info.options)
+    for m in s:filter_modes(
+    \   (map_info.modes != '' ? map_info.modes : 'nvoicxsl'),
+    \   map_info.options
+    \)
         let args = [
         \   m,
         \   map_info.options,
@@ -281,7 +284,10 @@ function! s:cmd_defmap(q_args) "{{{
         return
     endtry
 
-    for m in s:filter_modes(map_info.modes, map_info.options)
+    for m in s:filter_modes(
+    \   (map_info.modes != '' ? map_info.modes : 'nvoicxsl'),
+    \   map_info.options
+    \)
         let args = [
         \   m,
         \   map_info.options,
@@ -333,7 +339,10 @@ function! s:cmd_map(q_args) "{{{
         return
     endtry
 
-    for m in s:filter_modes(map_info.modes, map_info.options)
+    for m in s:filter_modes(
+    \   (map_info.modes != '' ? map_info.modes : 'nvoicxsl'),
+    \   map_info.options
+    \)
         let args = [
         \   m,
         \   map_info.options,
@@ -482,23 +491,41 @@ endfunction "}}}
 function! s:parse_args(q_args) "{{{
     " NOTE: Currently :DefMap and :Map arguments are the same.
 
-    let q_args = a:q_args
-    let q_args = s:skip_spaces(q_args)
+    let modes = ''
+    let options = {}
+    let lhs = ''
+    let rhs = ''
+    let create_instance = 'new'
 
-    let [modes    , q_args] = s:parse_modes(q_args)
-    let q_args = s:skip_spaces(q_args)
+    try
+        let q_args = a:q_args
+        let q_args = s:skip_spaces(q_args)
 
-    let [options  , q_args] = s:parse_options(q_args)
-    let options = s:add_pragmas(options)
-    let q_args = s:skip_spaces(q_args)
+        " Allow no arguments `Map` to list all modes' mappings.
+        if q_args == '' | throw create_instance | endif
 
-    let [lhs, q_args] = s:parse_lhs(q_args)
-    let q_args = s:skip_spaces(q_args)
+        let [modes    , q_args] = s:parse_modes(q_args)
+        let q_args = s:skip_spaces(q_args)
+        " Allow no options and lhs `Map [n]` to list all modes' mappings.
+        if q_args == '' | throw create_instance | endif
 
-    let [rhs, q_args] = s:parse_rhs(q_args)
+        let [options  , q_args] = s:parse_options(q_args)
+        let options = s:add_pragmas(options)
+        let q_args = s:skip_spaces(q_args)
+        " Allow no lhs `Map [n]` to list all modes' mappings.
+        if q_args == '' | throw create_instance | endif
 
-    " Assert q_args == ''
+        let [lhs, q_args] = s:parse_lhs(q_args)
+        let q_args = s:skip_spaces(q_args)
+        " Allow no rhs `Map [n] lhs` to list all modes' mappings.
+        if q_args == '' | throw create_instance | endif
 
+        let [rhs, q_args] = s:parse_rhs(q_args)
+
+        " Assert q_args == ''
+    catch /^new$/
+        " Fall through.
+    endtry
     return s:map_info_new(modes, options, lhs, rhs)
 endfunction "}}}
 
