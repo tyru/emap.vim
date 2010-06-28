@@ -253,7 +253,7 @@ function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \   m,
         \   map_info.options,
         \   {a:convert_lhs_fn}(m, map_info),
-        \   (map_info.rhs == '' ? '' : emap#compile_map(map_info.rhs, m, map_info.options)),
+        \   (map_info.rhs == '' ? '' : s:compile_map_info(m, map_info, 0)),
         \]
         try
             " List or register mappings with :map command.
@@ -300,7 +300,7 @@ function! s:convert_defmacromap(mode, map_info) "{{{
     return s:get_snr_macro_lhs(a:map_info.lhs)
 endfunction "}}}
 function! s:convert_map(mode, map_info) "{{{
-    return emap#compile_map(a:map_info.lhs, a:mode, a:map_info.options)
+    return s:compile_map_info(a:mode, a:map_info, 1)
 endfunction "}}}
 
 
@@ -458,13 +458,11 @@ endfunction "}}}
 
 
 " Mapping
-function! emap#compile_map(map, mode, ...) "{{{
-    let options = a:0 != 0 ? a:1 : s:add_pragmas({})
-
+function! s:compile_map_info(mode, map_info, is_lhs) "{{{
     " TODO Parse nested key notation.
-    let keys = s:split_to_keys(a:map)
+    let keys = s:split_to_keys(a:map_info[a:is_lhs ? 'lhs' : 'rhs'])
 
-    if s:pragma_has(options, s:PRAGMA_IGNORE_SPACES)
+    if a:map_info.has_pragma(s:PRAGMA_IGNORE_SPACES)
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
