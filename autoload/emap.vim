@@ -43,6 +43,9 @@ function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
     let self.stash[a:mode . a:lhs] =
     \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
 endfunction "}}}
+function! s:map_dict.unmap(mode, map_info_options, lhs) dict "{{{
+    unlet self.stash[a:mode . a:lhs]
+endfunction "}}}
 function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
     " NOTE: This function may be frequently called by :for.
     " And `a:map_info_options` may be same object during :for.
