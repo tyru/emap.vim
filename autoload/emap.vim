@@ -155,26 +155,6 @@ endfunction "}}}
 
 
 
-function! s:add_pragmas(options) "{{{
-    return extend(copy(a:options), {
-    \   'pragmas': filter(keys(s:pragmas), 's:pragmas[v:val]')
-    \}, 'keep')
-endfunction "}}}
-
-function! s:opt_has(options, name) "{{{
-    return get(a:options, a:name, 0)
-endfunction "}}}
-
-function! s:pragma_has(options, name) "{{{
-    if a:name == s:PRAGMA_IGNORE_SPACES
-        " Do not apply `ignore-spaces` when -`expr` is specified.
-        return s:has_elem(get(a:options, 'pragmas', []), a:name)
-        \   && !s:opt_has(a:options, 'expr')
-    else
-        return s:has_elem(get(a:options, 'pragmas', []), a:name)
-    endif
-endfunction "}}}
-
 function! s:convert_options(options) "{{{
     " Convert to Vim's :map option notation.
     return
@@ -437,7 +417,6 @@ function! s:parse_args(q_args) "{{{
         if q_args == '' | throw create_instance | endif
 
         let [options  , q_args] = s:parse_options(q_args)
-        let options = s:add_pragmas(options)
         let q_args = s:skip_spaces(q_args)
         " Allow no lhs `Map [n]` to list all modes' mappings.
         if q_args == '' | throw create_instance | endif
