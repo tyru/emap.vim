@@ -16,7 +16,7 @@ lockvar s:PRAGMA_WARNINGS_MODE
 let s:pragmas = {
 \   s:PRAGMA_IGNORE_SPACES : 0,
 \   s:PRAGMA_LEADER_MACRO  : 0,
-\   s:PRAGMA_WARNINGS_MODE : 0,
+\   s:PRAGMA_WARNINGS_MODE : 1,
 \}
 let s:GROUP_PRAGMAS = {
 \   'all': 'emap#available_pragmas()',
