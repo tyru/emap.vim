@@ -554,7 +554,7 @@ endfunction "}}}
 
 function! s:map_info.get_each_modes(...) dict "{{{
     let ret = []
-    for m in (a:0 && self.modes == '' ? a:1 : s:each_char(self.modes))
+    for m in (a:0 && self.modes == '' ? split(a:1, '\zs') : s:each_char(self.modes))
         if s:is_mode_char(m)
             call add(ret, m)
         elseif self.has_pragma(s:PRAGMA_WARNINGS_MODE)
