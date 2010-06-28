@@ -89,9 +89,13 @@ endfunction "}}}
 
 " Utilities
 function! s:warn(...) "{{{
-    echohl WarningMsg
-    echomsg join(a:000)
-    echohl None
+    if a:0
+        echohl WarningMsg
+        echomsg join(a:000)
+        echohl None
+    else
+        call s:warn(substitute(v:exception, '^Vim(\w\+):', '', ''))
+    endif
 endfunction "}}}
 
 function! s:warnf(msg, ...) "{{{
@@ -156,10 +160,6 @@ function! s:argument_error(msg) "{{{
     return 'argument error: ' . a:msg
 endfunction "}}}
 
-function! s:get_exception() "{{{
-    return substitute(v:exception, '^Vim(\w\+):', '', '')
-endfunction "}}}
-
 
 " Mode
 function! s:is_mode_char(char) "{{{
@@ -219,7 +219,7 @@ function! s:cmd_defmacromap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(s:get_exception())
+        call s:warn()
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
@@ -240,7 +240,7 @@ function! s:cmd_defmacromap(q_args) "{{{
         try
             execute call('s:get_map_excmd', args)
         catch
-            call s:warn(s:get_exception())
+            call s:warn()
             continue
         endtry
         " Save this mapping to `s:macro_map` indivisually.
@@ -253,7 +253,7 @@ function! s:cmd_defmacrounmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(s:get_exception())
+        call s:warn()
         return
     endtry
 
@@ -264,7 +264,7 @@ function! s:cmd_defmacrounmap(q_args) "{{{
             \               map_info.options,
             \               s:get_snr_macro_lhs(map_info.lhs))
         catch
-            call s:warn(s:get_exception())
+            call s:warn()
         endtry
     endfor
 endfunction "}}}
@@ -275,7 +275,7 @@ function! s:cmd_defmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(s:get_exception())
+        call s:warn()
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
@@ -296,7 +296,7 @@ function! s:cmd_defmap(q_args) "{{{
         try
             execute call('s:get_map_excmd', args)
         catch
-            call s:warn(s:get_exception())
+            call s:warn()
             continue
         endtry
         " Save this mapping to `s:macro_map` indivisually.
@@ -309,7 +309,7 @@ function! s:cmd_defunmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(s:get_exception())
+        call s:warn()
         return
     endtry
 
@@ -320,7 +320,7 @@ function! s:cmd_defunmap(q_args) "{{{
             \               map_info.options,
             \               s:get_snr_named_lhs(map_info.lhs))
         catch
-            call s:warn(s:get_exception())
+            call s:warn()
         endtry
     endfor
 endfunction "}}}
@@ -329,7 +329,7 @@ function! s:cmd_map(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(s:get_exception())
+        call s:warn()
         call s:warnf("parse error: %s", a:q_args)
         return
     endtry
@@ -350,7 +350,7 @@ function! s:cmd_map(q_args) "{{{
         try
             execute call('s:get_map_excmd', args)
         catch
-            call s:warn(s:get_exception())
+            call s:warn()
         endtry
     endfor
 endfunction "}}}
@@ -359,7 +359,7 @@ function! s:cmd_unmap(q_args) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
-        call s:warn(s:get_exception())
+        call s:warn()
         return
     endtry
 
@@ -370,7 +370,7 @@ function! s:cmd_unmap(q_args) "{{{
             \               map_info.options,
             \               emap#compile_map(map_info.lhs, m, map_info.options))
         catch
-            call s:warn(s:get_exception())
+            call s:warn()
         endtry
     endfor
 endfunction "}}}
