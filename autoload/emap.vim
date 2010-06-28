@@ -483,18 +483,18 @@ function! s:parse_args(q_args) "{{{
     " NOTE: Currently :DefMap and :Map arguments are the same.
 
     let q_args = a:q_args
-
     let q_args = s:skip_spaces(q_args)
+
     let [modes    , q_args] = s:parse_modes(q_args)
-
     let q_args = s:skip_spaces(q_args)
+
     let [options  , q_args] = s:parse_options(q_args)
     let options = s:add_pragmas(options)
-
     let q_args = s:skip_spaces(q_args)
+
     let [lhs, q_args] = s:parse_lhs(q_args)
-
     let q_args = s:skip_spaces(q_args)
+
     let [rhs, q_args] = s:parse_rhs(q_args)
 
     " Assert q_args == ''
