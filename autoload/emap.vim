@@ -143,11 +143,7 @@ function! s:echomsg(hl, msg) "{{{
 endfunction "}}}
 
 function! s:error(...) "{{{
-    if a:0
-        call s:echomsg('ErrorMsg', join(a:000))
-    else
-        call s:error(substitute(v:exception, '^Vim(\w\+):', '', ''))
-    endif
+    call s:echomsg('ErrorMsg', join(a:000))
 endfunction "}}}
 
 function! s:errorf(msg, ...) "{{{
@@ -272,7 +268,7 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
                 call call(a:dict_map.map, args, a:dict_map)
             endif
         catch
-            call s:error()
+            call s:error(v:exception)
         endtry
     endfor
 endfunction "}}}
@@ -297,7 +293,7 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
                 call call(a:dict_map.unmap, args, a:dict_map)
             endif
         catch
-            call s:error()
+            call s:error(v:exception)
         endtry
     endfor
 endfunction "}}}
