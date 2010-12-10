@@ -179,15 +179,15 @@ endfunction "}}}
 
 let s:ex_commands = {
 \   'EmDefMacroMap': {
-\       'opt': '-nargs=* -bang',
+\       'opt': '-nargs=* -bang -complete=mapping',
 \       'def': 'call s:cmd_defmacromap(<cmdname>, <q-args>, <bang>0)',
 \   },
 \   'EmDefMap': {
-\       'opt': '-nargs=* -bang',
+\       'opt': '-nargs=* -bang -complete=mapping',
 \       'def': 'call s:cmd_defmap(<cmdname>, <q-args>, <bang>0)',
 \   },
 \   'EmMap': {
-\       'opt': '-nargs=* -bang',
+\       'opt': '-nargs=* -bang -complete=mapping',
 \       'def': 'call s:cmd_map(<cmdname>, <q-args>, <bang>0)',
 \   },
 \   'EmSetPragmas': {

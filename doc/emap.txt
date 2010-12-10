@@ -248,7 +248,6 @@ TODO						*emap-todo* {{{
     - ...
 - `:autocmd` like hook feature.
   - When {before,after,both} {lhs,rhs,both} is converted
-- command-line completion for commands.
 - Listing mappings by `Map [...] -options lhs`.
 - |:DefMapClear|
 - |:DefMacroMapClear|
