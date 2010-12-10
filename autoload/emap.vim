@@ -186,14 +186,16 @@ endfunction "}}}
 function! emap#load(...) "{{{
     " TODO autoload functions for ex commands.
 
+    " Define Ex commands.
+    " This can change those names like:
+    "   call emap#load({
+    "   \   'EmMap': 'Map',
+    "   \   'EmDefMacroMap': 'DefMacroMap',
+    "   \   'EmDefMap': 'DefMap',
+    "   \   'EmSetPragmas': 'SetPragmas',
+    "   \})
+    "   call emap#load('noprefix')    " same as above
     for excmdname in keys(s:ex_commands)
-        if !has_key(s:ex_commands, excmdname)
-            echohl ErrorMsg
-            echomsg excmdname . ": Unknown command"
-            echohl None
-            continue
-        endif
-
         let def =
         \   substitute(
         \       s:ex_commands[excmdname].def,
