@@ -186,34 +186,27 @@ endfunction "}}}
 function! emap#load(...) "{{{
     " TODO autoload functions for ex commands.
 
-    for cmdname in (a:0 ? a:000 : keys(s:ex_commands))
-        if type(cmdname) == type([])
-            if len(cmdname) < 2
-                echohl ErrorMsg
-                echomsg 'Invalid arguments for emap#load(). See :help emap#load()'
-                echohl None
-                return
-            endif
-            call s:define_command(cmdname[0], 1, cmdname[1])
-        else
-            call s:define_command(cmdname, 1)
+    for excmdname in keys(s:ex_commands)
+        if !has_key(s:ex_commands, excmdname)
+            echohl ErrorMsg
+            echomsg excmdname . ": Unknown command"
+            echohl None
+            continue
         endif
+
+        let def =
+        \   substitute(
+        \       s:ex_commands[excmdname].def,
+        \       '<cmdname>\C',
+        \       string(excmdname),
+        \       ''
+        \   )
+        execute
+        \   'command!'
+        \   s:ex_commands[excmdname].opt
+        \   excmdname
+        \   def
     endfor
-endfunction "}}}
-
-function! s:define_command(cmdname, force, ...) "{{{
-    if !has_key(s:ex_commands, a:cmdname)
-        echohl ErrorMsg
-        echomsg a:cmdname . ": Unknown command"
-        echohl None
-        return
-    endif
-
-    execute
-    \   'command' . (a:force ? '!' : '')
-    \   s:ex_commands[a:cmdname].opt
-    \   (a:0 ? a:1 : a:cmdname)
-    \   substitute(s:ex_commands[a:cmdname].def, '<cmdname>'.'\C', string(a:cmdname), '')
 endfunction "}}}
 
 function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
