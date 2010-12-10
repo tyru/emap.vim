@@ -71,8 +71,7 @@ let s:ex_commands = {
 \   'DefMacroMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmacromap(<cmdname>, <q-args>, <bang>0)'},
 \   'DefMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmap(<cmdname>, <q-args>, <bang>0)'},
 \   'Map': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_map(<cmdname>, <q-args>, <bang>0)'},
-\   'SetPragmas': {'opt': '-bar -nargs=+', 'def': 'call emap#set_pragmas([<f-args>])'},
-\   'UnsetPragmas': {'opt': '-bar -nargs=+', 'def': 'call emap#unset_pragmas([<f-args>])'},
+\   'SetPragmas': {'opt': '-bar -nargs=+ -bang', 'def': 'call s:cmd_set_pragmas([<f-args>], <bang>0)'},
 \}
 " }}}
 
@@ -660,6 +659,11 @@ function! s:convert_pragmas(pragmas) "{{{
         endif
     endfor
     return ret
+endfunction "}}}
+
+function! s:cmd_set_pragmas(f_args, bang) "{{{
+    let fn = a:bang ? 'emap#unset_pragmas' : 'emap#set_pragmas'
+    return {fn}(a:f_args)
 endfunction "}}}
 
 function! emap#set_pragmas(pragmas) "{{{
