@@ -243,7 +243,7 @@ function! emap#load(...) "{{{
     endfor
 endfunction "}}}
 
-function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
+function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
@@ -272,7 +272,7 @@ function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         endtry
     endfor
 endfunction "}}}
-function! s:unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
+function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
     try
         let map_info = s:parse_args(a:q_args)
     catch /^parse error:/
@@ -310,13 +310,13 @@ endfunction "}}}
 
 
 function! s:cmd_defmacromap(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:unmap_command' : 's:map_command'}(a:cmdname, a:q_args, 's:convert_defmacromap', s:macro_map)
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmacromap', s:macro_map)
 endfunction "}}}
 function! s:cmd_defmap(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:unmap_command' : 's:map_command'}(a:cmdname, a:q_args, 's:convert_defmap', s:named_map)
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmap', s:named_map)
 endfunction "}}}
 function! s:cmd_map(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:unmap_command' : 's:map_command'}(a:cmdname, a:q_args, 's:convert_map', {})
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_map', {})
 endfunction "}}}
 
 
