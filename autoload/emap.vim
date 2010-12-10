@@ -177,6 +177,7 @@ endfunction "}}}
 
 " For ex commands
 
+" s:ex_commands {{{
 let s:ex_commands = {
 \   'EmDefMacroMap': {
 \       'opt': '-nargs=* -bang -complete=mapping',
@@ -195,6 +196,7 @@ let s:ex_commands = {
 \       'def': 'call s:cmd_set_pragmas([<f-args>], <bang>0)',
 \   },
 \}
+" }}}
 
 function! emap#load(...) "{{{
     " Define Ex commands.
