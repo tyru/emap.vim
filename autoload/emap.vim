@@ -142,6 +142,10 @@ function! s:echomsg(hl, msg) "{{{
     endtry
 endfunction "}}}
 
+function! s:warn(...) "{{{
+    call s:echomsg('WarningMsg', 'emap: ' . join(a:000))
+endfunction "}}}
+
 function! s:error(...) "{{{
     call s:echomsg('ErrorMsg', 'emap: ' . join(a:000))
 endfunction "}}}
@@ -200,7 +204,7 @@ function! emap#load(...) "{{{
             \   'substitute(v:key, "^Em", "", "")'
             \)
         else
-            call s:echomsg('ErrorMsg', "invalid arguments for emap#load().")
+            call s:error("invalid arguments for emap#load().")
             return
         endif
     else
@@ -583,7 +587,7 @@ function! s:map_info.get_each_modes(...) dict "{{{
         if s:is_mode_char(m)
             call add(ret, m)
         elseif self.has_pragma(s:PRAGMA_WARNINGS_MODE)
-            call s:echomsg('WarningMsg', "'" . m "' is not available mode.")
+            call s:warn("'" . m . "' is not available mode.")
             sleep 1
         endif
     endfor
