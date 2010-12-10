@@ -70,30 +70,8 @@ let s:macro_map = s:map_dict_new()
 
 " Functions {{{
 
-" Wrapper functions for built-ins.
-function! s:matchstr(str, regex) "{{{
-    return call('matchstr', [a:str, a:regex . '\C'] + a:000)
-endfunction "}}}
-function! s:matchlist(str, regex, ...) "{{{
-    return call('matchlist' [a:str, a:regex . '\C'] + a:000)
-endfunction "}}}
-
 
 " Utilities
-function! s:error(...) "{{{
-    if a:0
-        echohl ErrorMsg
-        echomsg join(a:000)
-        echohl None
-    else
-        call s:error(substitute(v:exception, '^Vim(\w\+):', '', ''))
-    endif
-endfunction "}}}
-
-function! s:errorf(msg, ...) "{{{
-    call s:error(call('printf', [a:msg] + a:000))
-endfunction "}}}
-
 function! s:each_char(str) "{{{
     return split(a:str, '\zs')
 endfunction "}}}
@@ -142,21 +120,40 @@ function! s:has_one_of(list, elem) "{{{
     endif
 endfunction "}}}
 
+function! s:matchstr(str, regex) "{{{
+    " Do not ignore case.
+    return call('matchstr', [a:str, a:regex . '\C'] + a:000)
+endfunction "}}}
 
+function! s:matchlist(str, regex, ...) "{{{
+    " Do not ignore case.
+    return call('matchlist' [a:str, a:regex . '\C'] + a:000)
+endfunction "}}}
 
-function! s:mapopt_dict2raw(options) "{{{
-    " Convert to Vim's :map option notation.
-    return
-    \   (get(a:options, 'expr', 0) ? '<expr>' : '')
-    \   . (get(a:options, 'buffer', 0) ? '<buffer>' : '')
-    \   . (get(a:options, 'silent', 0) ? '<silent>' : '')
-    \   . (get(a:options, 'special', 0) ? '<special>' : '')
-    \   . (get(a:options, 'script', 0) ? '<script>' : '')
-    \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
+function! s:is_mode_char(char) "{{{
+    return a:char =~# '^[nvoiclxs]$'
+endfunction "}}}
+
+function! s:get_all_modes() "{{{
+    return 'nvoiclxs'
 endfunction "}}}
 
 
 " Errors
+function! s:error(...) "{{{
+    if a:0
+        echohl ErrorMsg
+        echomsg join(a:000)
+        echohl None
+    else
+        call s:error(substitute(v:exception, '^Vim(\w\+):', '', ''))
+    endif
+endfunction "}}}
+
+function! s:errorf(msg, ...) "{{{
+    call s:error(call('printf', [a:msg] + a:000))
+endfunction "}}}
+
 function! s:parse_error(msg) "{{{
     return 'parse error: ' . a:msg
 endfunction "}}}
@@ -166,17 +163,7 @@ function! s:argument_error(msg) "{{{
 endfunction "}}}
 
 
-" Mode
-function! s:is_mode_char(char) "{{{
-    return a:char =~# '^[nvoiclxs]$'
-endfunction "}}}
-function! s:get_all_modes() "{{{
-    return 'nvoiclxs'
-endfunction "}}}
-
-
 " For ex commands
-
 " s:ex_commands {{{
 let s:ex_commands = {
 \   'EmDefMacroMap': {
@@ -197,7 +184,6 @@ let s:ex_commands = {
 \   },
 \}
 " }}}
-
 function! emap#load(...) "{{{
     " Define Ex commands.
     " This can change those names like:
@@ -241,6 +227,26 @@ function! emap#load(...) "{{{
         \   get(def_names, name, name)
         \   def
     endfor
+endfunction "}}}
+
+function! s:cmd_defmacromap(cmdname, q_args, bang) "{{{
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmacromap_lhs', s:macro_map)
+endfunction "}}}
+function! s:cmd_defmap(cmdname, q_args, bang) "{{{
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmap_lhs', s:named_map)
+endfunction "}}}
+function! s:cmd_map(cmdname, q_args, bang) "{{{
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_map_lhs', {})
+endfunction "}}}
+
+function! s:convert_defmap_lhs(mode, map_info) "{{{
+    return s:get_snr_named_lhs(a:map_info.lhs)
+endfunction "}}}
+function! s:convert_defmacromap_lhs(mode, map_info) "{{{
+    return s:get_snr_macro_lhs(a:map_info.lhs)
+endfunction "}}}
+function! s:convert_map_lhs(mode, map_info) "{{{
+    return s:compile_map_info(a:mode, a:map_info, 1)
 endfunction "}}}
 
 function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
@@ -298,29 +304,8 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
     endfor
 endfunction "}}}
 
-function! s:convert_defmap_lhs(mode, map_info) "{{{
-    return s:get_snr_named_lhs(a:map_info.lhs)
-endfunction "}}}
-function! s:convert_defmacromap_lhs(mode, map_info) "{{{
-    return s:get_snr_macro_lhs(a:map_info.lhs)
-endfunction "}}}
-function! s:convert_map_lhs(mode, map_info) "{{{
-    return s:compile_map_info(a:mode, a:map_info, 1)
-endfunction "}}}
 
-
-function! s:cmd_defmacromap(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmacromap_lhs', s:macro_map)
-endfunction "}}}
-function! s:cmd_defmap(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmap_lhs', s:named_map)
-endfunction "}}}
-function! s:cmd_map(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_map_lhs', {})
-endfunction "}}}
-
-
-" Parser for ex commands.
+" Parsing Ex commands' argument
 function! s:parse_modes(q_args) "{{{
     let mode_arg = s:matchstr(a:q_args, '^\[[^\[\]]\+\]')
     let rest  = strpart(a:q_args, strlen(mode_arg))
@@ -505,6 +490,17 @@ function! s:eval_special_key(map, mode) "{{{
         " Other character like 'a', 'b', ...
         return a:map
     endif
+endfunction "}}}
+
+function! s:mapopt_dict2raw(options) "{{{
+    " Convert dictionary to Vim's :map options.
+    return
+    \   (get(a:options, 'expr', 0) ? '<expr>' : '')
+    \   . (get(a:options, 'buffer', 0) ? '<buffer>' : '')
+    \   . (get(a:options, 'silent', 0) ? '<silent>' : '')
+    \   . (get(a:options, 'special', 0) ? '<special>' : '')
+    \   . (get(a:options, 'script', 0) ? '<script>' : '')
+    \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
 endfunction "}}}
 
 function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
