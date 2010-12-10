@@ -68,10 +68,10 @@ let s:named_map = s:map_dict_new()
 let s:macro_map = s:map_dict_new()
 
 let s:ex_commands = {
-\   'DefMacroMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmacromap(<cmdname>, <q-args>, <bang>0)'},
-\   'DefMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmap(<cmdname>, <q-args>, <bang>0)'},
-\   'Map': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_map(<cmdname>, <q-args>, <bang>0)'},
-\   'SetPragmas': {'opt': '-bar -nargs=+ -bang', 'def': 'call s:cmd_set_pragmas([<f-args>], <bang>0)'},
+\   'EmDefMacroMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmacromap(<cmdname>, <q-args>, <bang>0)'},
+\   'EmDefMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmap(<cmdname>, <q-args>, <bang>0)'},
+\   'EmMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_map(<cmdname>, <q-args>, <bang>0)'},
+\   'EmSetPragmas': {'opt': '-bar -nargs=+ -bang', 'def': 'call s:cmd_set_pragmas([<f-args>], <bang>0)'},
 \}
 " }}}
 
