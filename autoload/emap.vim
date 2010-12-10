@@ -186,6 +186,24 @@ endfunction "}}}
 function! emap#load(...) "{{{
     " TODO autoload functions for ex commands.
 
+    if a:0
+        if type(a:1) == type({})
+            let def_names = a:1
+        elseif type(a:1) == type("") && a:1 ==# 'noprefix'
+            let def_names = map(
+            \   copy(s:ex_commands),
+            \   'substitute(v:key, "^Em", "", "")'
+            \)
+        else
+            echohl ErrorMsg
+            echomsg "invalid arguments for emap#load()."
+            echohl None
+            return
+        endif
+    else
+        let def_names = {}
+    endif
+
     " Define Ex commands.
     " This can change those names like:
     "   call emap#load({
@@ -206,7 +224,7 @@ function! emap#load(...) "{{{
         execute
         \   'command!'
         \   s:ex_commands[excmdname].opt
-        \   excmdname
+        \   get(def_names, excmdname, excmdname)
         \   def
     endfor
 endfunction "}}}
