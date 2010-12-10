@@ -184,8 +184,6 @@ endfunction "}}}
 
 " For ex commands
 function! emap#load(...) "{{{
-    " TODO autoload functions for ex commands.
-
     " Define Ex commands.
     " This can change those names like:
     "   call emap#load({
@@ -442,7 +440,6 @@ endfunction "}}}
 
 " Mapping
 function! s:compile_map_info(mode, map_info, is_lhs) "{{{
-    " TODO Parse nested key notation.
     let keys = s:split_to_keys(a:map_info[a:is_lhs ? 'lhs' : 'rhs'])
 
     if a:map_info.has_pragma(s:PRAGMA_IGNORE_SPACES)

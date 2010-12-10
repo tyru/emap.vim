@@ -197,7 +197,6 @@ KEY NOTATION				*emap-key-notation* {{{
 ==============================================================================
 TODO						*emap-todo* {{{
 
-- Nested <...> expression.
 - To be hackable.
 - |:DefMap| defines mapping to take arguments.
 >
@@ -257,6 +256,8 @@ TODO						*emap-todo* {{{
 - Show warnings when <user-defined-map> is not defined, nor built-in keys.
 - Passing "-noremap" to |:DefMacroMap| doesn't make sense.
   should show the warning.
+- autoload functions for each ex command.
+
 }}}
 ==============================================================================
 CHANGELOG						*emap-changelog* {{{
