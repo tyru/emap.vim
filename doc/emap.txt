@@ -197,7 +197,19 @@ KEY NOTATION				*emap-key-notation* {{{
 ==============================================================================
 TODO						*emap-todo* {{{
 
-- To be hackable.
+- Listing mappings by `Map [...] -options lhs`.
+- |:DefMapClear|
+- |:DefMacroMapClear|
+- Autoload functions correspond to ex commands.
+- Show warnings when <user-defined-map> is not defined, nor built-in keys.
+- Passing "-remap" to |:DefMacroMap| doesn't make sense.
+  should show the warning.
+- autoload functions for each ex command.
+
+
+More...
+--------
+
 - |:DefMap| defines mapping to take arguments.
 >
     DefMap [n] -nargs=1 yank y <args>
@@ -246,16 +258,6 @@ TODO						*emap-todo* {{{
     - emap-submode
     - emap-altercmd
     - ...
-- `:autocmd` like hook feature.
-  - When {before,after,both} {lhs,rhs,both} is converted
-- Listing mappings by `Map [...] -options lhs`.
-- |:DefMapClear|
-- |:DefMacroMapClear|
-- Autoload functions correspond to ex commands.
-- Show warnings when <user-defined-map> is not defined, nor built-in keys.
-- Passing "-noremap" to |:DefMacroMap| doesn't make sense.
-  should show the warning.
-- autoload functions for each ex command.
 
 }}}
 ==============================================================================
