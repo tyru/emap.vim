@@ -143,7 +143,7 @@ function! s:echomsg(hl, msg) "{{{
 endfunction "}}}
 
 function! s:error(...) "{{{
-    call s:echomsg('ErrorMsg', join(a:000))
+    call s:echomsg('ErrorMsg', 'emap: ' . join(a:000))
 endfunction "}}}
 
 function! s:errorf(msg, ...) "{{{
