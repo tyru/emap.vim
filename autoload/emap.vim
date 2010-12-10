@@ -237,7 +237,8 @@ function! s:map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \]
         try
             " List or register mappings with :map command.
-            execute call('s:get_map_excmd', args)
+            let fn = map_info.options.abbr ? 's:get_abbr_excmd' : 's:get_map_excmd'
+            execute call(fn, args)
             " Save this mapping to `a:dict_map` indivisually.
             " Because Vim can't look up lhs with <SID> correctly by maparg().
             if !empty(a:dict_map)
@@ -263,7 +264,8 @@ function! s:unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \   {a:convert_lhs_fn}(m, map_info),
         \]
         try
-            execute call('s:get_unmap_excmd', args)
+            let fn = map_info.options.abbr ? 's:get_unabbr_excmd' : 's:get_unmap_excmd'
+            execute call(fn, args)
             if !empty(a:dict_map)
                 call call(a:dict_map.unmap, args, a:dict_map)
             endif
@@ -345,6 +347,8 @@ function! s:parse_options(q_args) "{{{
                 let opt.script = 1
             elseif a[1:] ==# 'force'
                 let opt.unique = 0
+            elseif a[1:] ==# 'abbr'
+                let opt.abbr = 1
             else
                 throw s:parse_error(printf("unknown option '%s'.", a))
             endif
@@ -364,6 +368,7 @@ function! s:get_default_options() "{{{
     \   'script': 0,
     \   'unique': 0,
     \   'noremap': 1,
+    \   'abbr': 0,
     \}
 endfunction "}}}
 
@@ -501,9 +506,27 @@ function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
     \])
 endfunction "}}}
 
+function! s:get_abbr_excmd(mode, options, lhs, rhs) "{{{
+    let noremap = get(a:options, 'noremap', 0)
+    return join([
+    \   printf('%s%sabbr', a:mode, noremap ? 'nore' : ''),
+    \   s:convert_options(a:options),
+    \   a:lhs,
+    \   a:rhs
+    \])
+endfunction "}}}
+
 function! s:get_unmap_excmd(mode, options, lhs) "{{{
     return join([
     \   printf('%sunmap', a:mode),
+    \   s:convert_options(a:options),
+    \   a:lhs,
+    \])
+endfunction "}}}
+
+function! s:get_unabbr_excmd(mode, options, lhs) "{{{
+    return join([
+    \   printf('%sunabbr', a:mode),
     \   s:convert_options(a:options),
     \   a:lhs,
     \])
