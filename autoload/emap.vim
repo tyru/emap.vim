@@ -144,7 +144,7 @@ endfunction "}}}
 
 
 
-function! s:convert_options(options) "{{{
+function! s:mapopt_dict2raw(options) "{{{
     " Convert to Vim's :map option notation.
     return
     \   (get(a:options, 'expr', 0) ? '<expr>' : '')
@@ -511,7 +511,7 @@ function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
     let noremap = get(a:options, 'noremap', 0)
     return join([
     \   printf('%s%smap', a:mode, noremap ? 'nore' : ''),
-    \   s:convert_options(a:options),
+    \   s:mapopt_dict2raw(a:options),
     \   a:lhs,
     \   a:rhs
     \])
@@ -521,7 +521,7 @@ function! s:get_abbr_excmd(mode, options, lhs, rhs) "{{{
     let noremap = get(a:options, 'noremap', 0)
     return join([
     \   printf('%s%sabbr', a:mode, noremap ? 'nore' : ''),
-    \   s:convert_options(a:options),
+    \   s:mapopt_dict2raw(a:options),
     \   a:lhs,
     \   a:rhs
     \])
@@ -530,7 +530,7 @@ endfunction "}}}
 function! s:get_unmap_excmd(mode, options, lhs) "{{{
     return join([
     \   printf('%sunmap', a:mode),
-    \   s:convert_options(a:options),
+    \   s:mapopt_dict2raw(a:options),
     \   a:lhs,
     \])
 endfunction "}}}
@@ -538,7 +538,7 @@ endfunction "}}}
 function! s:get_unabbr_excmd(mode, options, lhs) "{{{
     return join([
     \   printf('%sunabbr', a:mode),
-    \   s:convert_options(a:options),
+    \   s:mapopt_dict2raw(a:options),
     \   a:lhs,
     \])
 endfunction "}}}
