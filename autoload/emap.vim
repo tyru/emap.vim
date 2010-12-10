@@ -213,18 +213,18 @@ function! emap#load(...) "{{{
     "   \   'EmSetPragmas': 'SetPragmas',
     "   \})
     "   call emap#load('noprefix')    " same as above
-    for excmdname in keys(s:ex_commands)
+    for [name, info] in items(s:ex_commands)
         let def =
         \   substitute(
-        \       s:ex_commands[excmdname].def,
+        \       info.def,
         \       '<cmdname>\C',
-        \       string(excmdname),
+        \       string(name),
         \       ''
         \   )
         execute
         \   'command!'
-        \   s:ex_commands[excmdname].opt
-        \   get(def_names, excmdname, excmdname)
+        \   info.opt
+        \   get(def_names, name, name)
         \   def
     endfor
 endfunction "}}}
