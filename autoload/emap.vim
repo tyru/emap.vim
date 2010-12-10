@@ -133,11 +133,18 @@ endfunction "}}}
 
 
 " Errors
+function! s:echomsg(hl, msg) "{{{
+    execute 'echohl' a:hl
+    try
+        echomsg a:msg
+    finally
+        echohl None
+    endtry
+endfunction "}}}
+
 function! s:error(...) "{{{
     if a:0
-        echohl ErrorMsg
-        echomsg join(a:000)
-        echohl None
+        call s:echomsg('ErrorMsg', join(a:000))
     else
         call s:error(substitute(v:exception, '^Vim(\w\+):', '', ''))
     endif
@@ -197,9 +204,7 @@ function! emap#load(...) "{{{
             \   'substitute(v:key, "^Em", "", "")'
             \)
         else
-            echohl ErrorMsg
-            echomsg "invalid arguments for emap#load()."
-            echohl None
+            call s:echomsg('ErrorMsg', "invalid arguments for emap#load().")
             return
         endif
     else
@@ -582,9 +587,7 @@ function! s:map_info.get_each_modes(...) dict "{{{
         if s:is_mode_char(m)
             call add(ret, m)
         elseif self.has_pragma(s:PRAGMA_WARNINGS_MODE)
-            echohl WarningMsg
-            echomsg "'" . m "' is not available mode."
-            echohl None
+            call s:echomsg('WarningMsg', "'" . m "' is not available mode.")
             sleep 1
         endif
     endfor
