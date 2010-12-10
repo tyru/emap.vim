@@ -298,25 +298,25 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
     endfor
 endfunction "}}}
 
-function! s:convert_defmap(mode, map_info) "{{{
+function! s:convert_defmap_lhs(mode, map_info) "{{{
     return s:get_snr_named_lhs(a:map_info.lhs)
 endfunction "}}}
-function! s:convert_defmacromap(mode, map_info) "{{{
+function! s:convert_defmacromap_lhs(mode, map_info) "{{{
     return s:get_snr_macro_lhs(a:map_info.lhs)
 endfunction "}}}
-function! s:convert_map(mode, map_info) "{{{
+function! s:convert_map_lhs(mode, map_info) "{{{
     return s:compile_map_info(a:mode, a:map_info, 1)
 endfunction "}}}
 
 
 function! s:cmd_defmacromap(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmacromap', s:macro_map)
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmacromap_lhs', s:macro_map)
 endfunction "}}}
 function! s:cmd_defmap(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmap', s:named_map)
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_defmap_lhs', s:named_map)
 endfunction "}}}
 function! s:cmd_map(cmdname, q_args, bang) "{{{
-    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_map', {})
+    return {a:bang ? 's:do_unmap_command' : 's:do_map_command'}(a:cmdname, a:q_args, 's:convert_map_lhs', {})
 endfunction "}}}
 
 
