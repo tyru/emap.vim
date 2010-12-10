@@ -66,13 +66,6 @@ lockvar s:map_dict
 
 let s:named_map = s:map_dict_new()
 let s:macro_map = s:map_dict_new()
-
-let s:ex_commands = {
-\   'EmDefMacroMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmacromap(<cmdname>, <q-args>, <bang>0)'},
-\   'EmDefMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmap(<cmdname>, <q-args>, <bang>0)'},
-\   'EmMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_map(<cmdname>, <q-args>, <bang>0)'},
-\   'EmSetPragmas': {'opt': '-bar -nargs=+ -bang', 'def': 'call s:cmd_set_pragmas([<f-args>], <bang>0)'},
-\}
 " }}}
 
 " Functions {{{
@@ -183,6 +176,26 @@ endfunction "}}}
 
 
 " For ex commands
+
+let s:ex_commands = {
+\   'EmDefMacroMap': {
+\       'opt': '-nargs=* -bang',
+\       'def': 'call s:cmd_defmacromap(<cmdname>, <q-args>, <bang>0)',
+\   },
+\   'EmDefMap': {
+\       'opt': '-nargs=* -bang',
+\       'def': 'call s:cmd_defmap(<cmdname>, <q-args>, <bang>0)',
+\   },
+\   'EmMap': {
+\       'opt': '-nargs=* -bang',
+\       'def': 'call s:cmd_map(<cmdname>, <q-args>, <bang>0)',
+\   },
+\   'EmSetPragmas': {
+\       'opt': '-bar -nargs=+ -bang',
+\       'def': 'call s:cmd_set_pragmas([<f-args>], <bang>0)',
+\   },
+\}
+
 function! emap#load(...) "{{{
     " Define Ex commands.
     " This can change those names like:
