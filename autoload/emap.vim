@@ -7,11 +7,8 @@ set cpo&vim
 
 " Script variables {{{
 let s:PRAGMA_IGNORE_SPACES = 'ignore-spaces'
-lockvar s:PRAGMA_IGNORE_SPACES
 let s:PRAGMA_LEADER_MACRO = 'leader-macro'
-lockvar s:PRAGMA_LEADER_MACRO
 let s:PRAGMA_WARNINGS_MODE = 'warnings-mode'
-lockvar s:PRAGMA_WARNINGS_MODE
 
 let s:pragmas = {
 \   s:PRAGMA_IGNORE_SPACES : 0,
@@ -22,7 +19,6 @@ let s:GROUP_PRAGMAS = {
 \   'all': 'emap#available_pragmas()',
 \   'warnings': printf('filter(emap#available_pragmas(), %s)', string('v:val =~# "^warnings-"')),
 \}
-lockvar s:GROUP_PRAGMAS
 
 let s:vimrc_sid = -1
 
@@ -30,7 +26,6 @@ function! s:SID() "{{{
     return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfunction "}}}
 let s:EMAP_SNR = printf("<SNR>%d_", s:SID())
-lockvar s:EMAP_SNR
 
 " s:map_dict {{{
 let s:map_dict = {'stash': {}}
@@ -60,8 +55,6 @@ function! s:map_dict.maparg(lhs, mode) dict "{{{
     " NOTE: a:mode is only one character.
     return get(self.stash, a:mode . a:lhs, {'_rhs': ''})._rhs
 endfunction "}}}
-
-lockvar s:map_dict
 " }}}
 
 let s:named_map = s:map_dict_new()
@@ -596,8 +589,6 @@ function! s:map_info.get_each_modes(...) dict "{{{
     endfor
     return ret
 endfunction "}}}
-
-lockvar s:map_info
 " }}}
 
 
