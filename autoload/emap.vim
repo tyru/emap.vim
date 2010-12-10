@@ -556,9 +556,10 @@ let s:map_info = {'modes': '', 'options': {}, 'lhs': '', 'rhs': ''}
 function! s:map_info_new(modes, options, lhs, rhs) "{{{
     let obj = deepcopy(s:map_info)
 
-    for varname in keys(a:)
-        let obj[varname] = deepcopy(a:[varname])
-    endfor
+    let obj.modes = a:modes
+    let obj.options = a:options
+    let obj.lhs = a:lhs
+    let obj.rhs = a:rhs
 
     let obj.pragmas = deepcopy(s:pragmas)
 
