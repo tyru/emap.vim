@@ -70,8 +70,7 @@ let s:macro_map = s:map_dict_new()
 let s:ex_commands = {
 \   'DefMacroMap': {'opt': '-nargs=*', 'def': 'call s:cmd_defmacromap(<cmdname>, <q-args>)'},
 \   'DefMacroUnmap': {'opt': '-nargs=*', 'def': 'call s:cmd_defmacrounmap(<cmdname>, <q-args>)'},
-\   'DefMap': {'opt': '-nargs=*', 'def': 'call s:cmd_defmap(<cmdname>, <q-args>)'},
-\   'DefUnmap': {'opt': '-nargs=*', 'def': 'call s:cmd_defunmap(<cmdname>, <q-args>)'},
+\   'DefMap': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_defmap(<cmdname>, <q-args>, <bang>0)'},
 \   'Map': {'opt': '-nargs=* -bang', 'def': 'call s:cmd_map(<cmdname>, <q-args>, <bang>0)'},
 \   'SetPragmas': {'opt': '-bar -nargs=+', 'def': 'call emap#set_pragmas([<f-args>])'},
 \   'UnsetPragmas': {'opt': '-bar -nargs=+', 'def': 'call emap#unset_pragmas([<f-args>])'},
@@ -288,8 +287,8 @@ endfunction "}}}
 function! s:cmd_defmacromap(cmdname, q_args) "{{{
     return s:map_command(a:cmdname, a:q_args, 's:convert_defmacromap', s:macro_map)
 endfunction "}}}
-function! s:cmd_defmap(cmdname, q_args) "{{{
-    return s:map_command(a:cmdname, a:q_args, 's:convert_defmap', s:named_map)
+function! s:cmd_defmap(cmdname, q_args, bang) "{{{
+    return {a:bang ? 's:unmap_command' : 's:map_command'}(a:cmdname, a:q_args, 's:convert_defmap', s:named_map)
 endfunction "}}}
 function! s:cmd_map(cmdname, q_args, bang) "{{{
     return {a:bang ? 's:unmap_command' : 's:map_command'}(a:cmdname, a:q_args, 's:convert_map', {})
@@ -298,9 +297,6 @@ endfunction "}}}
 
 function! s:cmd_defmacrounmap(cmdname, q_args) "{{{
     return s:unmap_command(a:cmdname, a:q_args, 's:convert_defmacromap', s:macro_map)
-endfunction "}}}
-function! s:cmd_defunmap(cmdname, q_args) "{{{
-    return s:unmap_command(a:cmdname, a:q_args, 's:convert_defmap', s:named_map)
 endfunction "}}}
 
 
