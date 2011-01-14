@@ -451,7 +451,13 @@ function! s:parse_args(q_args) "{{{
     catch /^new$/
         " Fall through.
     endtry
-    return s:map_info_new(modes, options, lhs, rhs)
+    return {
+    \   'modes': modes,
+    \   'options': options,
+    \   'lhs': lhs,
+    \   'rhs': rhs,
+    \   'pragmas': s:pragmas,
+    \}
 endfunction "}}}
 
 
@@ -461,12 +467,11 @@ function! emap#compile_map(lhs, mode) "{{{
     " This expands emap notation in a:lhs to Vim key-notation.
     return s:compile_map_info(
     \   a:mode,
-    \   s:map_info_new(
-    \       a:mode,
-    \       '',
-    \       a:lhs,
-    \       ''
-    \   ),
+    \   {
+    \       'lhs': a:lhs,
+    \       'pragmas': s:pragmas,
+    \       'options': {},
+    \   },
     \   1
     \)
 endfunction "}}}
@@ -586,25 +591,6 @@ endfunction "}}}
 function! s:get_snr_named_lhs(map) "{{{
     return s:EMAP_SNR . s:get_named_lhs(a:map)
 endfunction "}}}
-
-" Mapping info object to give to plugins.
-" This will be created by `s:parse_args()`.
-" s:map_info {{{
-let s:map_info = {'modes': '', 'options': {}, 'lhs': '', 'rhs': ''}
-
-function! s:map_info_new(modes, options, lhs, rhs) "{{{
-    let obj = deepcopy(s:map_info)
-
-    let obj.modes = a:modes
-    let obj.options = a:options
-    let obj.lhs = a:lhs
-    let obj.rhs = a:rhs
-
-    let obj.pragmas = deepcopy(s:pragmas)
-
-    return obj
-endfunction "}}}
-" }}}
 
 
 " Set SID to convert "<SID>" to "<SNR>...".
