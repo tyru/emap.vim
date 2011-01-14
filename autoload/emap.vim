@@ -362,6 +362,7 @@ function! s:get_default_options() "{{{
     \   'special': 0,
     \   'script': 0,
     \   'unique': 0,
+    \
     \   'noremap': 1,
     \   'abbr': 0,
     \}
@@ -437,6 +438,21 @@ endfunction "}}}
 
 
 " Mapping
+function! emap#compile_map(lhs, mode) "{{{
+    " emap#compile_map() expands a:lhs to rhs.
+    " This expands emap notation in a:lhs to Vim key-notation.
+    return s:compile_map_info(
+    \   a:mode,
+    \   s:map_info_new(
+    \       a:mode,
+    \       '',
+    \       a:lhs,
+    \       ''
+    \   ),
+    \   1
+    \)
+endfunction "}}}
+
 function! s:compile_map_info(mode, map_info, is_lhs) "{{{
     let keys = s:split_to_keys(a:map_info[a:is_lhs ? 'lhs' : 'rhs'])
 
