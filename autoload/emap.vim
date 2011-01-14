@@ -336,6 +336,19 @@ function! s:parse_options(q_args) "{{{
     let q_args = a:q_args
     let opt = s:get_default_options()
 
+    let enable = {
+    \   'expr': 'expr',
+    \   'buffer': 'buffer',
+    \   'silent': 'silent',
+    \   'special': 'special',
+    \   'script': 'script',
+    \   'abbr': 'abbr',
+    \}
+    let disable = {
+    \   'remap': 'noremap',
+    \   'force': 'unique',
+    \}
+
     while !empty(q_args)
         let [a, rest] = s:parse_one_arg_from_q_args(q_args)
         if a[0] !=# '-'
@@ -346,22 +359,11 @@ function! s:parse_options(q_args) "{{{
         if a ==# '--'
             break
         elseif a[0] ==# '-'
-            if a[1:] ==# 'expr'
-                let opt.expr = 1
-            elseif a[1:] ==# 'remap'
-                let opt.noremap = 0
-            elseif a[1:] ==# 'buffer'
-                let opt.buffer = 1
-            elseif a[1:] ==# 'silent'
-                let opt.silent = 1
-            elseif a[1:] ==# 'special'
-                let opt.special = 1
-            elseif a[1:] ==# 'script'
-                let opt.script = 1
-            elseif a[1:] ==# 'force'
-                let opt.unique = 0
-            elseif a[1:] ==# 'abbr'
-                let opt.abbr = 1
+            let optname = a[1:]
+            if has_key(enable, optname)
+                let opt[enable[optname]] = 1
+            elseif has_key(disable, optname)
+                let opt[disable[optname]] = 0
             else
                 throw s:parse_error(printf("unknown option '%s'.", a))
             endif
