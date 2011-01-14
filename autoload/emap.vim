@@ -274,7 +274,7 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \   m,
         \   map_info.options,
         \   {a:convert_lhs_fn}(m, map_info),
-        \   (map_info.rhs == '' ? '' : s:compile_map(m, map_info.rhs, map_info.options)),
+        \   (s:compile_map(m, map_info.rhs, map_info.options)),
         \]
         try
             " List or register mappings with :map command.
@@ -469,6 +469,10 @@ function! emap#compile_map(lhs, mode) "{{{
 endfunction "}}}
 
 function! s:compile_map(mode, map, options) "{{{
+    if a:map == ''
+        return ''
+    endif
+
     let keys = s:split_to_keys(a:map)
 
     if s:has_pragma(s:pragmas, s:PRAGMA_IGNORE_SPACES, a:options)
