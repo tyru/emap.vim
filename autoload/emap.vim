@@ -462,7 +462,7 @@ endfunction "}}}
 
 
 " Mapping
-function! emap#compile_map(lhs, mode) "{{{
+function! emap#compile_map(mode, lhs) "{{{
     " emap#compile_map() expands a:lhs to rhs.
     " This expands emap notation in a:lhs to Vim key-notation.
     return s:compile_map(a:mode, a:lhs, {})
