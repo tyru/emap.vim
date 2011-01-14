@@ -164,8 +164,8 @@ endfunction "}}}
 
 
 " For ex commands
-" s:ex_commands {{{
-let s:ex_commands = {
+" s:EX_COMMANDS {{{
+let s:EX_COMMANDS = {
 \   'EmDefMacroMap': {
 \       'opt': '-nargs=* -bang -complete=mapping',
 \       'def': 'call s:cmd_defmacromap(<cmdname>, <q-args>, <bang>0)',
@@ -200,7 +200,7 @@ function! emap#load(...) "{{{
             let def_names = a:1
         elseif type(a:1) == type("") && a:1 ==# 'noprefix'
             let def_names = map(
-            \   copy(s:ex_commands),
+            \   copy(s:EX_COMMANDS),
             \   'substitute(v:key, "^Em", "", "")'
             \)
         else
@@ -211,7 +211,7 @@ function! emap#load(...) "{{{
         let def_names = {}
     endif
 
-    for [name, info] in items(s:ex_commands)
+    for [name, info] in items(s:EX_COMMANDS)
         let def =
         \   substitute(
         \       info.def,
@@ -457,6 +457,8 @@ endfunction "}}}
 function! emap#compile_map(mode, lhs) "{{{
     " emap#compile_map() expands a:lhs to rhs.
     " This expands emap notation in a:lhs to Vim key-notation.
+    "
+    " NOTE: Pass {} as a:options to let s:has_pragma() return 0.
     return s:compile_map(a:mode, a:lhs, {})
 endfunction "}}}
 
@@ -464,14 +466,11 @@ function! s:compile_map(mode, map, options) "{{{
     if a:map == ''
         return ''
     endif
-
     let keys = s:split_to_keys(a:map)
-
     if s:has_pragma(s:pragmas, s:PRAGMA_IGNORE_SPACES, a:options)
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
-
     return join(map(keys, 's:eval_special_key(v:val, a:mode)'), '')
 endfunction "}}}
 
