@@ -127,6 +127,20 @@ function! s:get_all_modes() "{{{
     return 'nvoiclxs'
 endfunction "}}}
 
+function! s:get_each_modes(modes, pragmas, options) "{{{
+    let ret = []
+    let modes = a:0 && a:modes == '' ? a:1 : a:modes
+    for m in split(modes, '\zs')
+        if s:is_mode_char(m)
+            call add(ret, m)
+        elseif s:has_pragma(a:pragmas, s:PRAGMA_WARNINGS_MODE, a:options)
+            call s:warn("'" . m . "' is not available mode.")
+            sleep 1
+        endif
+    endfor
+    return ret
+endfunction "}}}
+
 
 " Errors
 function! s:echomsg(hl, msg) "{{{
@@ -251,7 +265,11 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         return
     endtry
 
-    for m in map_info.get_each_modes(s:get_all_modes())
+    for m in s:get_each_modes(
+    \   map_info.modes != '' ? map_info.modes : s:get_all_modes(),
+    \   map_info.pragmas,
+    \   map_info.options
+    \)
         let args = [
         \   m,
         \   map_info.options,
@@ -280,7 +298,11 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         return
     endtry
 
-    for m in map_info.get_each_modes()
+    for m in s:get_each_modes(
+    \   map_info.modes,
+    \   map_info.pragmas,
+    \   map_info.options
+    \)
         let args = [
         \   m,
         \   map_info.options,
@@ -581,20 +603,6 @@ function! s:map_info_new(modes, options, lhs, rhs) "{{{
     let obj.pragmas = deepcopy(s:pragmas)
 
     return obj
-endfunction "}}}
-
-function! s:map_info.get_each_modes(...) dict "{{{
-    let ret = []
-    let modes = a:0 && self.modes == '' ? a:1 : self.modes
-    for m in split(modes, '\zs')
-        if s:is_mode_char(m)
-            call add(ret, m)
-        elseif s:has_pragma(self.pragmas, s:PRAGMA_WARNINGS_MODE, self.options)
-            call s:warn("'" . m . "' is not available mode.")
-            sleep 1
-        endif
-    endfor
-    return ret
 endfunction "}}}
 " }}}
 
