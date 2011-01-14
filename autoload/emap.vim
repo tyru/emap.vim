@@ -109,16 +109,6 @@ function! s:has_one_of(list, elem) "{{{
     endif
 endfunction "}}}
 
-function! s:matchstr(str, regex) "{{{
-    " Do not ignore case.
-    return call('matchstr', [a:str, a:regex . '\C'] + a:000)
-endfunction "}}}
-
-function! s:matchlist(str, regex, ...) "{{{
-    " Do not ignore case.
-    return call('matchlist' [a:str, a:regex . '\C'] + a:000)
-endfunction "}}}
-
 function! s:is_mode_char(char) "{{{
     return a:char =~# '^[nvoiclxs]$'
 endfunction "}}}
@@ -323,7 +313,7 @@ endfunction "}}}
 
 " Parsing Ex commands' argument
 function! s:parse_modes(q_args) "{{{
-    let mode_arg = s:matchstr(a:q_args, '^\[[^\[\]]\+\]')
+    let mode_arg = matchstr(a:q_args, '^\[[^\[\]]\+\]')
     let rest  = strpart(a:q_args, strlen(mode_arg))
     let modes = mode_arg[1:-2]
     if modes == ''
@@ -390,7 +380,7 @@ endfunction "}}}
 
 function! s:parse_one_arg_from_q_args(q_args) "{{{
     let arg = s:skip_spaces(a:q_args)
-    let head = s:matchstr(arg, '^.\{-}[^\\]\ze\([ \t]\|$\)')
+    let head = matchstr(arg, '^.\{-}[^\\]\ze\([ \t]\|$\)')
     let rest = strpart(arg, strlen(head))
     return [head, rest]
 endfunction "}}}
@@ -406,7 +396,7 @@ function! s:validate_lhs(lhs) "{{{
         throw s:parse_error('empty lhs.')
     endif
 
-    let illegal = s:matchstr(a:lhs, '^<\(expr\|buffer\|silent\|special\|script\|unique\)>')
+    let illegal = matchstr(a:lhs, '^<\(expr\|buffer\|silent\|special\|script\|unique\)>'.'\C')
     if illegal != ''
         throw s:parse_error(printf("'%s' is :map's option. Please use -option style instead.", illegal))
     endif
@@ -495,7 +485,7 @@ endfunction "}}}
 
 function! s:eval_special_key(map, mode) "{{{
     if a:map =~# '^<[^<>]\+>$'
-        let map_name = s:matchstr(a:map, '^<\zs[^<>]\+\ze>$')
+        let map_name = matchstr(a:map, '^<\zs[^<>]\+\ze>$')
         let named_map_rhs = s:named_map.maparg(s:get_snr_named_lhs(map_name), a:mode)
         let macro_map_rhs = s:macro_map.maparg(s:get_snr_macro_lhs(map_name), a:mode)
 
@@ -619,7 +609,7 @@ function! s:get_sid_from_sfile(sfile) "{{{
     redir END
 
     for line in split(result, '\n')
-        let _ = s:matchlist(line, '^\s*\(\d\+\):\s*\(.*\)$')
+        let _ = matchlist(line, '^\s*\(\d\+\):\s*\(.*\)$')
         if a:sfile ==# _[2]
             return _[1]
         endif
