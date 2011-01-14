@@ -254,7 +254,7 @@ function! s:convert_defmacromap_lhs(mode, map_info) "{{{
     return s:get_snr_macro_lhs(a:map_info.lhs)
 endfunction "}}}
 function! s:convert_map_lhs(mode, map_info) "{{{
-    return s:compile_map_info(a:mode, a:map_info.lhs, a:map_info.options)
+    return s:compile_map(a:mode, a:map_info.lhs, a:map_info.options)
 endfunction "}}}
 
 function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
@@ -274,7 +274,7 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \   m,
         \   map_info.options,
         \   {a:convert_lhs_fn}(m, map_info),
-        \   (map_info.rhs == '' ? '' : s:compile_map_info(m, map_info.rhs, map_info.options)),
+        \   (map_info.rhs == '' ? '' : s:compile_map(m, map_info.rhs, map_info.options)),
         \]
         try
             " List or register mappings with :map command.
@@ -465,10 +465,10 @@ endfunction "}}}
 function! emap#compile_map(lhs, mode) "{{{
     " emap#compile_map() expands a:lhs to rhs.
     " This expands emap notation in a:lhs to Vim key-notation.
-    return s:compile_map_info(a:mode, a:lhs, {})
+    return s:compile_map(a:mode, a:lhs, {})
 endfunction "}}}
 
-function! s:compile_map_info(mode, map, options) "{{{
+function! s:compile_map(mode, map, options) "{{{
     let keys = s:split_to_keys(a:map)
 
     if s:has_pragma(s:pragmas, s:PRAGMA_IGNORE_SPACES, a:options)
