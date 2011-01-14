@@ -65,10 +65,6 @@ let s:macro_map = s:map_dict_new()
 
 
 " Utilities
-function! s:each_char(str) "{{{
-    return split(a:str, '\zs')
-endfunction "}}}
-
 function! s:skip_spaces(q_args) "{{{
     return substitute(a:q_args, '^[ \t]*', '', '')
 endfunction "}}}
@@ -599,7 +595,8 @@ endfunction "}}}
 
 function! s:map_info.get_each_modes(...) dict "{{{
     let ret = []
-    for m in (a:0 && self.modes == '' ? split(a:1, '\zs') : s:each_char(self.modes))
+    let modes = a:0 && self.modes == '' ? a:1 : self.modes
+    for m in split(modes, '\zs')
         if s:is_mode_char(m)
             call add(ret, m)
         elseif self.has_pragma(s:PRAGMA_WARNINGS_MODE)
