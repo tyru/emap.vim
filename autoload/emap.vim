@@ -452,7 +452,7 @@ endfunction "}}}
 function! s:compile_map_info(mode, map_info, is_lhs) "{{{
     let keys = s:split_to_keys(a:map_info[a:is_lhs ? 'lhs' : 'rhs'])
 
-    if a:map_info.has_pragma(s:PRAGMA_IGNORE_SPACES)
+    if s:has_pragma(a:map_info.pragmas, s:PRAGMA_IGNORE_SPACES, a:map_info.options)
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
@@ -583,23 +583,13 @@ function! s:map_info_new(modes, options, lhs, rhs) "{{{
     return obj
 endfunction "}}}
 
-function! s:map_info.has_pragma(name) dict "{{{
-    if a:name ==# s:PRAGMA_IGNORE_SPACES
-        " Do not apply `ignore-spaces` when -`expr` is specified.
-        return get(self.pragmas, a:name, 0)
-        \   && !get(self.options, 'expr', 0)
-    else
-        return get(self.pragmas, a:name, 0)
-    endif
-endfunction "}}}
-
 function! s:map_info.get_each_modes(...) dict "{{{
     let ret = []
     let modes = a:0 && self.modes == '' ? a:1 : self.modes
     for m in split(modes, '\zs')
         if s:is_mode_char(m)
             call add(ret, m)
-        elseif self.has_pragma(s:PRAGMA_WARNINGS_MODE)
+        elseif s:has_pragma(self.pragmas, s:PRAGMA_WARNINGS_MODE, self.options)
             call s:warn("'" . m . "' is not available mode.")
             sleep 1
         endif
@@ -718,6 +708,16 @@ function! emap#unset_pragmas(pragmas) "{{{
     for i in pragmas
         let s:pragmas[i] = 0
     endfor
+endfunction "}}}
+
+function! s:has_pragma(pragmas, name, options) "{{{
+    if a:name ==# s:PRAGMA_IGNORE_SPACES
+        " Do not apply `ignore-spaces` when -`expr` is specified.
+        return get(a:pragmas, a:name, 0)
+        \   && !get(a:options, 'expr', 0)
+    else
+        return get(a:pragmas, a:name, 0)
+    endif
 endfunction "}}}
 
 " }}}
