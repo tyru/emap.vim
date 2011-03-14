@@ -600,6 +600,10 @@ function! emap#set_sid_from_sfile(sfile) "{{{
     call emap#set_sid(sid)
 endfunction "}}}
 
+function! emap#set_sid_from_vimrc() "{{{
+    return emap#set_sid_from_sfile($MYVIMRC)
+endfunction "}}}
+
 function! s:get_sid_from_sfile(sfile) "{{{
     " From `s:snr_prefix()` of `autoload/textobj/user.vim`.
 
