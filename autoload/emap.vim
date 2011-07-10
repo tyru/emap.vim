@@ -64,6 +64,9 @@ let s:macro_map = s:map_dict_new()
 " Functions {{{
 
 
+let s:Mapping = vital#of('emap').import('Mapping')
+
+
 " Utilities
 function! s:skip_spaces(q_args) "{{{
     return substitute(a:q_args, '^[ \t]*', '', '')
@@ -91,37 +94,11 @@ function! s:has_all_of(list, elem) "{{{
     endif
 endfunction "}}}
 
-function! s:has_one_of(list, elem) "{{{
-    " a:elem is List:
-    "   a:list has a:elem[0] || a:list has a:elem[1] || ...
-    " a:elem is not List:
-    "   a:list has a:elem
-
-    if type(a:elem) == type([])
-        for i in a:elem
-            if s:has_elem(a:list, i)
-                return 1
-            endif
-        endfor
-        return 0
-    else
-        return s:has_elem(a:list, a:elem)
-    endif
-endfunction "}}}
-
-function! s:is_mode_char(char) "{{{
-    return a:char =~# '^[nvoiclxs]$'
-endfunction "}}}
-
-function! s:get_all_modes() "{{{
-    return 'nvoiclxs'
-endfunction "}}}
-
 function! s:get_each_modes(modes, pragmas, options) "{{{
     let ret = []
     let modes = a:0 && a:modes == '' ? a:1 : a:modes
     for m in split(modes, '\zs')
-        if s:is_mode_char(m)
+        if s:Mapping.is_mode_char(m)
             call add(ret, m)
         elseif s:has_pragma(a:pragmas, s:PRAGMA_WARNINGS_MODE, a:options)
             call s:warn("'" . m . "' is not available mode.")
@@ -256,7 +233,7 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
     endtry
 
     for m in s:get_each_modes(
-    \   map_info.modes != '' ? map_info.modes : s:get_all_modes(),
+    \   map_info.modes != '' ? map_info.modes : s:Mapping.get_all_modes(),
     \   map_info.pragmas,
     \   map_info.options
     \)
@@ -268,8 +245,11 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \]
         try
             " List or register mappings with :map command.
-            let fn = map_info.options.abbr ? 's:get_abbr_excmd' : 's:get_map_excmd'
-            execute call(fn, args)
+            if map_info.options.abbr
+                call call(s:Mapping.execute_abbr_command, args, s:Mapping)
+            else
+                call call(s:Mapping.execute_map_command, args, s:Mapping)
+            endif
             " Save this mapping to `a:dict_map` indivisually.
             " Because Vim can't look up lhs with <SID> correctly by maparg().
             if !empty(a:dict_map)
@@ -299,8 +279,11 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \   {a:convert_lhs_fn}(m, map_info),
         \]
         try
-            let fn = map_info.options.abbr ? 's:get_unabbr_excmd' : 's:get_unmap_excmd'
-            execute call(fn, args)
+            if map_info.options.abbr
+                call call(s:Mapping.execute_unabbr_command, args, s:Mapping)
+            else
+                call call(s:Mapping.execute_unmap_command, args, s:Mapping)
+            endif
             if !empty(a:dict_map)
                 call call(a:dict_map.unmap, args, a:dict_map)
             endif
@@ -514,53 +497,6 @@ function! s:eval_special_key(map, mode) "{{{
         " Other character like 'a', 'b', ...
         return a:map
     endif
-endfunction "}}}
-
-function! s:mapopt_dict2raw(options) "{{{
-    " Convert dictionary to Vim's :map options.
-    return
-    \   (get(a:options, 'expr', 0) ? '<expr>' : '')
-    \   . (get(a:options, 'buffer', 0) ? '<buffer>' : '')
-    \   . (get(a:options, 'silent', 0) ? '<silent>' : '')
-    \   . (get(a:options, 'special', 0) ? '<special>' : '')
-    \   . (get(a:options, 'script', 0) ? '<script>' : '')
-    \   . (get(a:options, 'unique', 0) ? '<unique>' : '')
-endfunction "}}}
-
-function! s:get_map_excmd(mode, options, lhs, rhs) "{{{
-    let noremap = get(a:options, 'noremap', 0)
-    return join([
-    \   printf('%s%smap', a:mode, noremap ? 'nore' : ''),
-    \   s:mapopt_dict2raw(a:options),
-    \   a:lhs,
-    \   a:rhs
-    \])
-endfunction "}}}
-
-function! s:get_abbr_excmd(mode, options, lhs, rhs) "{{{
-    let noremap = get(a:options, 'noremap', 0)
-    return join([
-    \   printf('%s%sabbr', a:mode, noremap ? 'nore' : ''),
-    \   s:mapopt_dict2raw(a:options),
-    \   a:lhs,
-    \   a:rhs
-    \])
-endfunction "}}}
-
-function! s:get_unmap_excmd(mode, options, lhs) "{{{
-    return join([
-    \   printf('%sunmap', a:mode),
-    \   s:mapopt_dict2raw(a:options),
-    \   a:lhs,
-    \])
-endfunction "}}}
-
-function! s:get_unabbr_excmd(mode, options, lhs) "{{{
-    return join([
-    \   printf('%sunabbr', a:mode),
-    \   s:mapopt_dict2raw(a:options),
-    \   a:lhs,
-    \])
 endfunction "}}}
 
 function! s:get_macro_lhs(map) "{{{
