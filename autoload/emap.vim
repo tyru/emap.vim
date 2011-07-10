@@ -70,7 +70,7 @@ function! s:skip_spaces(q_args) "{{{
 endfunction "}}}
 
 function! s:has_elem(list, elem) "{{{
-    return !empty(filter(copy(a:list), 'v:val ==# a:elem'))
+    return index(a:list, a:elem) isnot -1
 endfunction "}}}
 
 function! s:has_all_of(list, elem) "{{{
