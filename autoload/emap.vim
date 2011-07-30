@@ -549,7 +549,7 @@ function! s:get_sid_from_sfile(sfile) "{{{
 
     for line in split(result, '\n')
         let _ = matchlist(line, '^\s*\(\d\+\):\s*\(.*\)$')
-        if a:sfile ==# _[2]
+        if a:sfile ==# expand(_[2])
             return _[1]
         endif
     endfor
