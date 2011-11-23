@@ -243,20 +243,21 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \   {a:convert_lhs_fn}(m, map_info),
         \   (s:compile_map(m, map_info.rhs, map_info.options)),
         \]
+        if map_info.options.abbr
+            let command = call(s:Mapping.get_abbr_command, args, s:Mapping)
+        else
+            let command = call(s:Mapping.get_map_command, args, s:Mapping)
+        endif
         try
-            " List or register mappings with :map command.
-            if map_info.options.abbr
-                call call(s:Mapping.execute_abbr_command, args, s:Mapping)
-            else
-                call call(s:Mapping.execute_map_command, args, s:Mapping)
-            endif
-            " Save this mapping to `a:dict_map` indivisually.
+            " List or register mappings with :map/:abbr command.
+            execute command
+            " Save this mapping to `a:dict_map`.
             " Because Vim can't look up lhs with <SID> correctly by maparg().
             if !empty(a:dict_map)
                 call call(a:dict_map.map, args, a:dict_map)
             endif
         catch
-            call s:error(v:exception)
+            call s:error('":'.command.'" throws an exception: ' . v:exception)
         endtry
     endfor
 endfunction "}}}
@@ -278,17 +279,20 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \   map_info.options,
         \   {a:convert_lhs_fn}(m, map_info),
         \]
+        if map_info.options.abbr
+            let command = call(s:Mapping.get_unabbr_command, args, s:Mapping)
+        else
+            let command = call(s:Mapping.get_unmap_command, args, s:Mapping)
+        endif
         try
-            if map_info.options.abbr
-                call call(s:Mapping.execute_unabbr_command, args, s:Mapping)
-            else
-                call call(s:Mapping.execute_unmap_command, args, s:Mapping)
-            endif
+            " Unregister mappings with :unmap/:unabbr command.
+            execute command
+            " Remove this mapping from `a:dict_map`.
             if !empty(a:dict_map)
                 call call(a:dict_map.unmap, args, a:dict_map)
             endif
         catch
-            call s:error(v:exception)
+            call s:error('":'.command.'" throws an exception: ' . v:exception)
         endtry
     endfor
 endfunction "}}}
