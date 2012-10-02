@@ -331,19 +331,15 @@ function! s:parse_options(q_args) "{{{
         if a[0] !=# '-'
             break
         endif
-        let q_args = rest
 
-        if a ==# '--'
-            break
-        elseif a[0] ==# '-'
-            let optname = a[1:]
-            if has_key(enable, optname)
-                let opt[enable[optname]] = 1
-            elseif has_key(disable, optname)
-                let opt[disable[optname]] = 0
-            else
-                throw s:parse_error(printf("unknown option '%s'.", a))
-            endif
+        let q_args = rest
+        let optname = a[1:]
+        if has_key(enable, optname)
+            let opt[enable[optname]] = 1
+        elseif has_key(disable, optname)
+            let opt[disable[optname]] = 0
+        else
+            throw s:parse_error(printf("unknown option '%s'.", a))
         endif
     endwhile
 
@@ -394,7 +390,8 @@ function! s:parse_rhs(q_args) "{{{
 endfunction "}}}
 
 function! s:parse_args(q_args) "{{{
-    " NOTE: Currently :DefMap and :Map arguments are the same.
+    "     <options> <modes> <lhs> <rhs>
+    " Map -buffer   [n]     j     gj
 
     let modes = ''
     let options = {}
@@ -409,14 +406,14 @@ function! s:parse_args(q_args) "{{{
         " Allow no arguments `Map` to list all modes' mappings.
         if q_args == '' | throw create_instance | endif
 
-        let [modes    , q_args] = s:parse_modes(q_args)
-        let q_args = s:skip_spaces(q_args)
-        " Allow no options and lhs `Map [n]` to list all modes' mappings.
-        if q_args == '' | throw create_instance | endif
-
         let [options  , q_args] = s:parse_options(q_args)
         let q_args = s:skip_spaces(q_args)
         " Allow no lhs `Map [n]` to list all modes' mappings.
+        if q_args == '' | throw create_instance | endif
+
+        let [modes    , q_args] = s:parse_modes(q_args)
+        let q_args = s:skip_spaces(q_args)
+        " Allow no options and lhs `Map [n]` to list all modes' mappings.
         if q_args == '' | throw create_instance | endif
 
         let [lhs, q_args] = s:parse_lhs(q_args)
