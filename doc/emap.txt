@@ -107,31 +107,31 @@ COMMANDS					*emap-commands* {{{
 
 <modes> are wrapped with "[...]".
 
-						*:DefMacroMap*
-:DefMacroMap <modes> <options> <lhs> <rhs>
+						*:EmDefMacroMap*
+:EmDefMacroMap <modes> <options> <lhs> <rhs>
 
-						*:DefMacroUnmap*
-:DefMacroUnmap <modes> <options> <lhs>
+						*:EmDefMacroUnmap*
+:EmDefMacroUnmap <modes> <options> <lhs>
 
-						*:DefMap*
-:DefMap <modes> <options> <lhs> <rhs>
+						*:EmDefMap*
+:EmDefMap <modes> <options> <lhs> <rhs>
 
-						*:DefUnmap*
-:DefUnmap <modes> <options> <lhs>
+						*:EmDefUnmap*
+:EmDefUnmap <modes> <options> <lhs>
 
-						*:Map*
-:Map <modes> <options> <lhs> <rhs>
+						*:EmMap*
+:EmMap <modes> <options> <lhs> <rhs>
 
-						*:Unmap*
-:Unmap <modes> <options> <lhs>
+						*:EmUnmap*
+:EmUnmap <modes> <options> <lhs>
 
-						*:SetPragmas*
-:SetPragmas <pragma> [<pragma> ...]
+						*:EmSetPragmas*
+:EmSetPragmas <pragma> [<pragma> ...]
 	This is wrapper ex command for |emap#set_pragmas()|.
 	See |emap-pragma| about pragma.
 
-						*:UnsetPragmas*
-:UnsetPragmas <pragma> [<pragma> ...]
+						*:EmUnsetPragmas*
+:EmUnsetPragmas <pragma> [<pragma> ...]
 	This is wrapper ex command for |emap#unset_pragmas()|.
 	See |emap-pragma| about pragma.
 
@@ -210,11 +210,11 @@ KEY NOTATION				*emap-key-notation* {{{
 TODO						*emap-todo* {{{
 
 - Listing mappings by `Map [...] -options lhs`.
-- |:DefMapClear|
-- |:DefMacroMapClear|
+- |:EmDefMapClear|
+- |:EmDefMacroMapClear|
 - Autoload functions correspond to ex commands.
 - Show warnings when <user-defined-map> is not defined, nor built-in keys.
-- Passing "-remap" to |:DefMacroMap| doesn't make sense.
+- Passing "-remap" to |:EmDefMacroMap| doesn't make sense.
   should show the warning.
 - autoload functions for each ex command.
 
@@ -222,14 +222,14 @@ TODO						*emap-todo* {{{
 More...
 --------
 
-- |:DefMap| defines mapping to take arguments.
+- |:EmDefMap| defines mapping to take arguments.
 >
     DefMap [n] -nargs=1 yank y <args>
     " This is converted to `y $`.
     Map    [n]          <yank $>
 <
 - `leader-macro` pragma
-- |:DefOwnMap|
+- |:EmDefOwnMap|
 >
     DefOwnMap FnMap Map [<modes>] <options> <lhs> :<C-u>call <rhs><CR>
     DefOwnMap ObjMap [<mode n>vo] <options> <lhs> <rhs>
