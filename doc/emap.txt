@@ -162,7 +162,7 @@ emap#set_sid({sid})
 	This is required for converting <SID> to <SNR>
 	in your .vimrc.
 
-emap#compile_map({mode}, {lhs})		*emap#compile_map()*
+emap#compile_map({mode}, {map})		*emap#compile_map()*
 	Compile |emap-key-notation| to Vim's |key-notation|.
 	namely, |:map|'s arguments.
 

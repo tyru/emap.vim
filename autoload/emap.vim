@@ -441,12 +441,12 @@ endfunction "}}}
 
 
 " Mapping
-function! emap#compile_map(mode, lhs) "{{{
-    " emap#compile_map() expands a:lhs to rhs.
-    " This expands emap notation in a:lhs to Vim key-notation.
+function! emap#compile_map(mode, map) "{{{
+    " emap#compile_map() expands a:map to rhs.
+    " This expands emap notation in a:map to Vim key-notation.
     "
     " NOTE: Pass {} as a:options to let s:has_pragma() return 0.
-    return s:compile_map(a:mode, a:lhs, {})
+    return s:compile_map(a:mode, a:map, {})
 endfunction "}}}
 
 function! s:compile_map(mode, map, options) "{{{
