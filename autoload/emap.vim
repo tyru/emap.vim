@@ -221,7 +221,12 @@ function! s:convert_defmacromap_lhs(mode, map_info) "{{{
     return s:get_snr_macro_lhs(a:map_info.lhs)
 endfunction "}}}
 function! s:convert_map_lhs(mode, map_info) "{{{
-    return s:compile_map(a:mode, a:map_info.lhs, a:map_info.options)
+    return s:compile_map(
+    \   a:mode,
+    \   a:map_info.lhs,
+    \   a:map_info.options,
+    \   s:create_context_from_map_info(a:map_info)
+    \)
 endfunction "}}}
 
 function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
@@ -241,7 +246,9 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         \   m,
         \   map_info.options,
         \   {a:convert_lhs_fn}(m, map_info),
-        \   (s:compile_map(m, map_info.rhs, map_info.options)),
+        \   s:compile_map(
+        \       m, map_info.rhs, map_info.options,
+        \       s:create_context_from_map_info(map_info)),
         \]
         if map_info.options.abbr
             let command = call(s:Mapping.get_abbr_command, args, s:Mapping)
@@ -449,7 +456,9 @@ function! emap#compile_map(mode, map) "{{{
     return s:compile_map(a:mode, a:map, {})
 endfunction "}}}
 
-function! s:compile_map(mode, map, options) "{{{
+function! s:compile_map(mode, map, options, ...) "{{{
+    let context = a:0 && type(a:1) is type({}) ?
+    \               a:1 : {}
     if a:map == ''
         return ''
     endif
@@ -458,7 +467,7 @@ function! s:compile_map(mode, map, options) "{{{
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
-    return join(map(keys, 's:eval_special_key(v:val, a:mode)'), '')
+    return join(map(keys, 's:eval_special_key(v:val, a:mode, context)'), '')
 endfunction "}}}
 
 function! s:split_to_keys(map)  "{{{
@@ -469,7 +478,7 @@ function! s:split_to_keys(map)  "{{{
     return split(a:map, '\(<[^<>]\+>\|.\)\zs')
 endfunction "}}}
 
-function! s:eval_special_key(map, mode) "{{{
+function! s:eval_special_key(map, mode, context) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let map_name = matchstr(a:map, '^<\zs[^<>]\+\ze>$')
         let named_map_rhs = s:named_map.maparg(s:get_snr_named_lhs(map_name), a:mode)
@@ -481,6 +490,12 @@ function! s:eval_special_key(map, mode) "{{{
 
         if a:map ==# '<SID>'
             return s:vimrc_snr_prefix()
+        elseif a:map ==# '<lhs>'
+        \   && has_key(a:context, 'lhs')
+            return a:context.lhs
+        elseif a:map ==# '<q-lhs>'
+        \   && has_key(a:context, 'lhs')
+            return string(a:context.lhs)
         elseif macro_map_rhs != ''
             " Found :DefMacroMap's mapping. Return rhs definition.
             return macro_map_rhs
@@ -517,6 +532,14 @@ endfunction "}}}
 
 function! s:get_snr_named_lhs(map) "{{{
     return s:EMAP_SNR . s:get_named_lhs(a:map)
+endfunction "}}}
+
+function! s:create_context_from_map_info(map_info) "{{{
+    let context = {}
+    if has_key(a:map_info, 'lhs')
+        let context.lhs = a:map_info.lhs
+    endif
+    return context
 endfunction "}}}
 
 
