@@ -364,7 +364,7 @@ function! s:get_default_options() "{{{
     \   'silent': 0,
     \   'special': 0,
     \   'script': 0,
-    \   'unique': 0,
+    \   'unique': 1,
     \
     \   'noremap': 1,
     \   'abbr': 0,
