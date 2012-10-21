@@ -255,9 +255,6 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         else
             let command = call(s:Mapping.get_map_command, args, s:Mapping)
         endif
-        if map_info.options.unique
-            let command = 'silent! '.command
-        endif
         try
             " List or register mappings with :map/:abbr command.
             execute command
