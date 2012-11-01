@@ -345,7 +345,7 @@ function! s:parse_options(q_args) "{{{
             let opt[enable[optname]] = 1
         elseif has_key(disable, optname)
             let opt[disable[optname]] = 0
-        elseif optname ==# 'unique'
+        elseif optname ==# 'unique' && has('vim_starting')
             call s:warn("warning: -unique is enabled by default: Map ".a:q_args)
             if has('vim_starting')
                 sleep 1
@@ -366,7 +366,7 @@ function! s:get_default_options() "{{{
     \   'silent': 0,
     \   'special': 0,
     \   'script': 0,
-    \   'unique': 1,
+    \   'unique': has('vim_starting'),
     \
     \   'noremap': 1,
     \   'abbr': 0,
