@@ -398,7 +398,8 @@ function! s:validate_lhs(lhs) "{{{
 endfunction "}}}
 
 function! s:parse_rhs(q_args) "{{{
-    return [a:q_args, '']
+    " Ignore trailing whitespaces.
+    return [substitute(a:q_args, '\s\+$', '', ''), '']
 endfunction "}}}
 
 function! s:parse_args(q_args) "{{{
