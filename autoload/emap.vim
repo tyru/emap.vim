@@ -106,20 +106,6 @@ function! s:has_all_of(list, elem) "{{{
     endif
 endfunction "}}}
 
-function! s:get_each_modes(modes, pragmas, options) "{{{
-    let ret = []
-    let modes = a:0 && a:modes == '' ? a:1 : a:modes
-    for m in split(modes, '\zs')
-        if s:Mapping.is_mode_char(m)
-            call add(ret, m)
-        elseif s:has_pragma(a:pragmas, s:PRAGMA_WARNINGS_MODE, a:options)
-            call s:warn("'" . m . "' is not available mode.")
-            sleep 1
-        endif
-    endfor
-    return ret
-endfunction "}}}
-
 function! s:expand_mode_chars(modes) "{{{
     let ret = []
     for m in split(a:modes, '\zs')
@@ -262,11 +248,16 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         return
     endtry
 
-    for m in s:get_each_modes(
+    for m in s:expand_mode_chars(
     \   map_info.modes != '' ? map_info.modes : s:Mapping.get_all_modes(),
-    \   map_info.pragmas,
-    \   map_info.options
     \)
+        if !s:Mapping.is_mode_char(m)
+            if s:has_pragma(map_info.pragmas, s:PRAGMA_WARNINGS_MODE, map_info.options)
+                call s:warn("'" . m . "' is not available mode.")
+                sleep 1
+            endif
+            continue
+        endif
         let args = [
         \   m,
         \   map_info.options,
@@ -301,11 +292,16 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         return
     endtry
 
-    for m in s:get_each_modes(
+    for m in s:expand_mode_chars(
     \   map_info.modes,
-    \   map_info.pragmas,
-    \   map_info.options
     \)
+        if !s:Mapping.is_mode_char(m)
+            if s:has_pragma(map_info.pragmas, s:PRAGMA_WARNINGS_MODE, map_info.options)
+                call s:warn("'" . m . "' is not available mode.")
+                sleep 1
+            endif
+            continue
+        endif
         let args = [
         \   m,
         \   map_info.options,
