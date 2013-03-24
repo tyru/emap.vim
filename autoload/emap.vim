@@ -36,13 +36,17 @@ endfunction "}}}
 
 function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
     for m in s:expand_mode_chars(a:mode)
-        let self.stash[m . a:lhs] =
-        \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
+        if s:Mapping.is_mode_char(m)
+            let self.stash[m . a:lhs] =
+            \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
+        endif
     endfor
 endfunction "}}}
 function! s:map_dict.unmap(mode, map_info_options, lhs) dict "{{{
     for m in s:expand_mode_chars(a:mode)
-        unlet self.stash[m . a:lhs]
+        if s:Mapping.is_mode_char(m)
+            unlet self.stash[m . a:lhs]
+        endif
     endfor
 endfunction "}}}
 function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
@@ -58,7 +62,9 @@ endfunction "}}}
 function! s:map_dict.maparg(lhs, mode) dict "{{{
     " NOTE: a:mode is only one character.
     for m in s:expand_mode_chars(a:mode)
-        return get(self.stash, m . a:lhs, {'_rhs': ''})._rhs
+        if s:Mapping.is_mode_char(m)
+            return get(self.stash, m . a:lhs, {'_rhs': ''})._rhs
+        endif
     endfor
 endfunction "}}}
 " }}}
@@ -117,12 +123,11 @@ endfunction "}}}
 function! s:expand_mode_chars(modes) "{{{
     let ret = []
     for m in split(a:modes, '\zs')
-        if s:Mapping.is_mode_char(m)
-            if m ==# 'v'
-                let ret += ['x', 's']
-            else
-                let ret += [m]
-            endif
+        if s:Mapping.is_mode_char(m) && m ==# 'v'
+            let ret += ['x', 's']
+        else
+            " Include even if 'm' was invalid character.
+            let ret += [m]
         endif
     endfor
     return ret
