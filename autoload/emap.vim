@@ -35,11 +35,15 @@ function! s:map_dict_new() "{{{
 endfunction "}}}
 
 function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
-    let self.stash[a:mode . a:lhs] =
-    \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
+    for m in s:expand_mode_chars(a:mode)
+        let self.stash[m . a:lhs] =
+        \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
+    endfor
 endfunction "}}}
 function! s:map_dict.unmap(mode, map_info_options, lhs) dict "{{{
-    unlet self.stash[a:mode . a:lhs]
+    for m in s:expand_mode_chars(a:mode)
+        unlet self.stash[m . a:lhs]
+    endfor
 endfunction "}}}
 function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
     " NOTE: This function may be frequently called by :for.
@@ -53,7 +57,9 @@ endfunction "}}}
 
 function! s:map_dict.maparg(lhs, mode) dict "{{{
     " NOTE: a:mode is only one character.
-    return get(self.stash, a:mode . a:lhs, {'_rhs': ''})._rhs
+    for m in s:expand_mode_chars(a:mode)
+        return get(self.stash, m . a:lhs, {'_rhs': ''})._rhs
+    endfor
 endfunction "}}}
 " }}}
 
@@ -103,6 +109,20 @@ function! s:get_each_modes(modes, pragmas, options) "{{{
         elseif s:has_pragma(a:pragmas, s:PRAGMA_WARNINGS_MODE, a:options)
             call s:warn("'" . m . "' is not available mode.")
             sleep 1
+        endif
+    endfor
+    return ret
+endfunction "}}}
+
+function! s:expand_mode_chars(modes) "{{{
+    let ret = []
+    for m in split(a:modes, '\zs')
+        if s:Mapping.is_mode_char(m)
+            if m ==# 'v'
+                let ret += ['x', 's']
+            else
+                let ret += [m]
+            endif
         endif
     endfor
     return ret
