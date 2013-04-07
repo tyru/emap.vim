@@ -69,8 +69,8 @@ function! s:map_dict.maparg(lhs, mode) dict "{{{
 endfunction "}}}
 " }}}
 
-let s:named_map = s:map_dict_new()
-let s:macro_map = s:map_dict_new()
+let s:named_map = {}
+let s:macro_map = {}
 " }}}
 
 " Functions {{{
@@ -173,6 +173,11 @@ let s:EX_COMMANDS = {
 \}
 " }}}
 function! emap#load(...) "{{{
+    call call('emap#define_ex_commands', a:000)
+    call emap#init_map_info()
+endfunction "}}}
+
+function! emap#define_ex_commands(...) "{{{
     " Define Ex commands.
     " This can change those names like:
     "   call emap#load({
@@ -213,6 +218,11 @@ function! emap#load(...) "{{{
         \   get(def_names, name, name)
         \   def
     endfor
+endfunction "}}}
+
+function! emap#init_map_info() "{{{
+    let s:named_map = s:map_dict_new()
+    let s:macro_map = s:map_dict_new()
 endfunction "}}}
 
 function! s:cmd_defmacromap(cmdname, q_args, bang) "{{{
