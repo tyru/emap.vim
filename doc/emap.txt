@@ -159,24 +159,24 @@ emap#init_map_info()						*emap#init_map_info()*
 	|emap| saves all mappings via |emap|,
 	this function clears the mappings info.
 
-emap#available_pragmas()		*emap#available_pragmas()* |emap-pragma|
+emap#available_pragmas()		*emap#available_pragmas()*
 	Returns all available pragmas.
 
-emap#group_pragmas()			*emap#group_pragmas()* |emap-pragma|
+emap#group_pragmas()			*emap#group_pragmas()*
 	Returns all group pragmas.
 
-emap#set_pragmas({pragmas})		*emap#set_pragmas()* |emap-pragma|
+emap#set_pragmas({pragmas})		*emap#set_pragmas()*
 	Enable some pragmas.
 	You can use group pragmas and non-group pragmas.
 
-emap#unset_pragmas({pragmas})	*emap#unset_pragmas()* |emap-pragma|
+emap#unset_pragmas({pragmas})	*emap#unset_pragmas()*
 	Disable some pragmas.
 	You can use group pragmas and non-group pragmas.
 
-emap#set_sid_from_sfile({sfile})	*emap#set_sid_from_sfile()* |<SID>|
+emap#set_sid_from_sfile({sfile})	*emap#set_sid_from_sfile()*
 emap#set_sid({sid})
 	Set script id.
-	This is required for converting <SID> to <SNR>
+	This is required for converting |<SID>| to |<SNR>|
 	in your .vimrc.
 
 emap#compile_map({mode}, {map})		*emap#compile_map()*
