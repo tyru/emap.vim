@@ -178,16 +178,6 @@ function! emap#load(...) "{{{
 endfunction "}}}
 
 function! emap#define_ex_commands(...) "{{{
-    " Define Ex commands.
-    " This can change those names like:
-    "   call emap#load({
-    "   \   'EmMap': 'Map',
-    "   \   'EmDefMacroMap': 'DefMacroMap',
-    "   \   'EmDefMap': 'DefMap',
-    "   \   'EmSetPragmas': 'SetPragmas',
-    "   \})
-    "   call emap#load('noprefix')    " same as above
-
     if a:0
         if type(a:1) == type({})
             let def_names = a:1

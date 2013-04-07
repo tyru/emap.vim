@@ -139,8 +139,25 @@ COMMANDS					*emap-commands* {{{
 ------------------------------------------------------------------------------
 FUNCTIONS				*emap-functions* {{{
 
-emap#load()						*emap#load()* |emap-commands|
+emap#load({excmdnames})						*emap#load()*
+	This function calls at once:
+	* |emap#define_ex_commands()|
+	* |emap#init_map_info()|
+
+emap#define_ex_commands({excmdnames})						*emap#define_ex_commands()*
 	Define ex commands.
+	Ex commands' names can be changed like: >
+	call emap#load({
+	\   'EmMap': 'Map',
+	\   'EmDefMacroMap': 'DefMacroMap',
+	\   'EmDefMap': 'DefMap',
+	\   'EmSetPragmas': 'SetPragmas',
+	\})
+	call emap#load('noprefix')    " same as above
+<
+emap#init_map_info()						*emap#init_map_info()*
+	|emap| saves all mappings via |emap|,
+	this function clears the mappings info.
 
 emap#available_pragmas()		*emap#available_pragmas()* |emap-pragma|
 	Returns all available pragmas.
