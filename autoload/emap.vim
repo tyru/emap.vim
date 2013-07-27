@@ -35,19 +35,13 @@ function! s:map_dict_new() "{{{
 endfunction "}}}
 
 function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
-    for m in s:expand_mode_chars(a:mode)
-        if s:Mapping.is_mode_char(m)
-            let self.stash[m . a:lhs] =
-            \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
-        endif
-    endfor
+    " NOTE: a:mode is only one character.
+    let self.stash[a:mode . a:lhs] =
+    \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
 endfunction "}}}
 function! s:map_dict.unmap(mode, map_info_options, lhs) dict "{{{
-    for m in s:expand_mode_chars(a:mode)
-        if s:Mapping.is_mode_char(m)
-            unlet self.stash[m . a:lhs]
-        endif
-    endfor
+    " NOTE: a:mode is only one character.
+    unlet self.stash[a:mode . a:lhs]
 endfunction "}}}
 function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
     " NOTE: This function may be frequently called by :for.
@@ -61,11 +55,13 @@ endfunction "}}}
 
 function! s:map_dict.maparg(lhs, mode) dict "{{{
     " NOTE: a:mode is only one character.
-    for m in s:expand_mode_chars(a:mode)
-        if s:Mapping.is_mode_char(m)
-            return get(self.stash, m . a:lhs, {'_rhs': ''})._rhs
-        endif
-    endfor
+    return has_key(self.stash, a:mode . a:lhs) ?
+    \       self.stash[a:mode . a:lhs]._rhs :
+    \      a:mode ==# 'v' && has_key(self.stash, 'x' . a:lhs) ?
+    \       self.stash['x' . a:lhs]._rhs :
+    \      a:mode ==# 'v' && has_key(self.stash, 's' . a:lhs) ?
+    \       self.stash['s' . a:lhs]._rhs :
+    \       ''
 endfunction "}}}
 " }}}
 
@@ -104,19 +100,6 @@ function! s:has_all_of(list, elem) "{{{
     else
         return s:has_elem(a:list, a:elem)
     endif
-endfunction "}}}
-
-function! s:expand_mode_chars(modes) "{{{
-    let ret = []
-    for m in split(a:modes, '\zs')
-        if s:Mapping.is_mode_char(m) && m ==# 'v'
-            let ret += ['x', 's']
-        else
-            " Include even if 'm' was invalid character.
-            let ret += [m]
-        endif
-    endfor
-    return ret
 endfunction "}}}
 
 
@@ -247,9 +230,9 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         call s:errorf("%s: %s", a:cmdname, v:exception)
         return
     endtry
-
-    for m in s:expand_mode_chars(
+    for m in split(
     \   map_info.modes != '' ? map_info.modes : s:Mapping.get_all_modes(),
+    \   '\zs'
     \)
         if !s:Mapping.is_mode_char(m)
             if s:has_pragma(map_info.pragmas, s:PRAGMA_WARNINGS_MODE, map_info.options)
@@ -307,8 +290,9 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         return
     endtry
 
-    for m in s:expand_mode_chars(
+    for m in split(
     \   map_info.modes,
+    \   '\zs'
     \)
         if !s:Mapping.is_mode_char(m)
             if s:has_pragma(map_info.pragmas, s:PRAGMA_WARNINGS_MODE, map_info.options)
