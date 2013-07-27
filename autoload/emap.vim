@@ -258,18 +258,33 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
             endif
             continue
         endif
-        let args = [
-        \   m,
-        \   map_info.options,
-        \   {a:convert_lhs_fn}(m, map_info),
-        \   s:compile_map(
-        \       m, map_info.rhs, map_info.options,
-        \       s:create_context_from_map_info(map_info)),
-        \]
-        if map_info.options.abbr
-            let command = call(s:Mapping.get_abbr_command, args, s:Mapping)
+        if map_info.rhs ==# ''
+            let args = [
+            \   m,
+            \   map_info.options,
+            \   {a:convert_lhs_fn}(m, map_info),
+            \]
+            let args = [m.(map_info.options.abbr ? 'abbr' : 'map')]
+            let rawopt = s:Mapping.options_dict2raw(map_info.options)
+            if rawopt !=# '' | call add(args, rawopt) | endif
+            if map_info.lhs !=# ''
+                call add(args, {a:convert_lhs_fn}(m, map_info))
+            endif
+            let command = join(args)
         else
-            let command = call(s:Mapping.get_map_command, args, s:Mapping)
+            let args = [
+            \   m,
+            \   map_info.options,
+            \   {a:convert_lhs_fn}(m, map_info),
+            \   s:compile_map(
+            \       m, map_info.rhs, map_info.options,
+            \       s:create_context_from_map_info(map_info)),
+            \]
+            if map_info.options.abbr
+                let command = call(s:Mapping.get_abbr_command, args, s:Mapping)
+            else
+                let command = call(s:Mapping.get_map_command, args, s:Mapping)
+            endif
         endif
         try
             " List or register mappings with :map/:abbr command.
@@ -429,7 +444,7 @@ function! s:parse_args(q_args) "{{{
 
     let map_info = {
     \   'modes': '',
-    \   'options': {},
+    \   'options': s:get_default_options(),
     \   'lhs': '',
     \   'rhs': '',
     \   'pragmas': s:pragmas,
