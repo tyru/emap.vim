@@ -427,47 +427,38 @@ function! s:parse_args(q_args) "{{{
     "     <options> <modes> <lhs> <rhs>
     " Map -buffer   [n]     j     gj
 
-    let modes = ''
-    let options = {}
-    let lhs = ''
-    let rhs = ''
-    let create_instance = 'new'
-
-    try
-        let q_args = a:q_args
-        let q_args = s:skip_spaces(q_args)
-
-        " Allow no arguments `Map` to list all modes' mappings.
-        if q_args == '' | throw create_instance | endif
-
-        let [options  , q_args] = s:parse_options(q_args)
-        let q_args = s:skip_spaces(q_args)
-        " Allow no lhs `Map [n]` to list all modes' mappings.
-        if q_args == '' | throw create_instance | endif
-
-        let [modes    , q_args] = s:parse_modes(q_args)
-        let q_args = s:skip_spaces(q_args)
-        " Allow no options and lhs `Map [n]` to list all modes' mappings.
-        if q_args == '' | throw create_instance | endif
-
-        let [lhs, q_args] = s:parse_lhs(q_args)
-        let q_args = s:skip_spaces(q_args)
-        " Allow no rhs `Map [n] lhs` to list all modes' mappings.
-        if q_args == '' | throw create_instance | endif
-
-        let [rhs, q_args] = s:parse_rhs(q_args)
-
-        " Assert q_args == ''
-    catch /^new$/
-        " Fall through.
-    endtry
-    return {
-    \   'modes': modes,
-    \   'options': options,
-    \   'lhs': lhs,
-    \   'rhs': rhs,
+    let map_info = {
+    \   'modes': '',
+    \   'options': {},
+    \   'lhs': '',
+    \   'rhs': '',
     \   'pragmas': s:pragmas,
     \}
+
+    let q_args = s:skip_spaces(a:q_args)
+
+    " Allow no arguments `Map` to list all modes' mappings.
+    if q_args == '' | return map_info | endif
+
+    let [map_info.options  , q_args] = s:parse_options(q_args)
+    let q_args = s:skip_spaces(q_args)
+    " Allow no lhs `Map [n]` to list all modes' mappings.
+    if q_args == '' | return map_info | endif
+
+    let [map_info.modes    , q_args] = s:parse_modes(q_args)
+    let q_args = s:skip_spaces(q_args)
+    " Allow no options and lhs `Map [n]` to list all modes' mappings.
+    if q_args == '' | return map_info | endif
+
+    let [map_info.lhs, q_args] = s:parse_lhs(q_args)
+    let q_args = s:skip_spaces(q_args)
+    " Allow no rhs `Map [n] lhs` to list all modes' mappings.
+    if q_args == '' | return map_info | endif
+
+    let [map_info.rhs, q_args] = s:parse_rhs(q_args)
+
+    " Assert q_args == ''
+    return map_info
 endfunction "}}}
 
 
