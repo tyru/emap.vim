@@ -234,6 +234,12 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         call s:errorf("%s: %s", a:cmdname, v:exception)
         return
     endtry
+
+    if map_info.modes ==# '' && map_info.rhs !=# ''
+        call s:error(a:cmdname . ": empty mode '[...]' argument"
+        \           . " is allowed for only listing mappings!")
+        return
+    endif
     for m in split(
     \   map_info.modes != '' ? map_info.modes : s:Mapping.get_all_modes(),
     \   '\zs'
@@ -294,6 +300,11 @@ function! s:do_unmap_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         return
     endtry
 
+    if map_info.modes ==# '' && map_info.rhs !=# ''
+        call s:error(a:cmdname . ": empty mode '[...]' argument"
+        \           . " is allowed for only listing mappings!")
+        return
+    endif
     for m in split(
     \   map_info.modes,
     \   '\zs'
