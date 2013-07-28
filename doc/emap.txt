@@ -50,11 +50,11 @@ INTRODUCTION						*emap-introduction* {{{
 	call emap#set_sid(s:SID())
 
 
-	DefMap [nvo] -noremap clipboard "+
-	DefMap [nvo] -noremap primary   "*
-	DefMap [nvo] -noremap blackhole "_
-	DefMap [nvo] -noremap delete-char x
-	DefMap [nvo] -noremap delete* d
+	DefMap [nvo] clipboard "+
+	DefMap [nvo] primary   "*
+	DefMap [nvo] blackhole "_
+	DefMap [nvo] delete-char x
+	DefMap [nvo] delete* d
 
 
 	" `SetPragmas ignores-spaces` ignores whitespaces in rhs.
@@ -62,30 +62,42 @@ INTRODUCTION						*emap-introduction* {{{
 	SetPragmas ignore-spaces
 
 	" paste to clipboard
-	Map [nvo] -noremap <Leader>y     <clipboard> y
-	Map [nvo] -noremap <SID>[comma]y <primary>   y
-	Map [nvo] -noremap <Leader>d     <clipboard> d
-	Map [nvo] -noremap <SID>[comma]d <primary>   d
+	Map [nvo] <Leader>y     <clipboard> y
+	Map [nvo] <SID>[comma]y <primary>   y
+	Map [nvo] <Leader>d     <clipboard> d
+	Map [nvo] <SID>[comma]d <primary>   d
 
 	" do not destroy noname register.
 	Map [nvo] x        <blackhole> <delete-char>
 	Map [nvo] <Space>d <blackhole> <delete*>
 
-	Map [nvo] -noremap callit :<C-u>call<Space><SID>my_func()<CR>
+	Map [nvo] callit :<C-u>call<Space><SID>my_func()<CR>
 
 	UnsetPragmas ignore-spaces
 
-	Map [nvo] -noremap callit :<C-u>call <SID>my_func()<CR>
+	Map [nvo] callit :<C-u>call <SID>my_func()<CR>
 
 
-	DefMap [i] -noremap -expr bs-ctrl-] getline('.')[col('.') - 2] ==# "\<C-]>" ? "\<BS>" : ''
-	DefMap [c] -noremap -expr bs-ctrl-] getcmdline()[getcmdpos() - 2] ==# "\<C-]>" ? "\<BS>" : ''
-	Map   [ic]                <C-]>     <C-]><bs-ctrl-]>
+	DefMap -expr [i]  bs-ctrl-] getline('.')[col('.') - 2] ==# "\<C-]>" ? "\<BS>" : ''
+	DefMap -expr [c]  bs-ctrl-] getcmdline()[getcmdpos() - 2] ==# "\<C-]>" ? "\<BS>" : ''
+	Map          [ic] <C-]>     <C-]><bs-ctrl-]>
 
 
-	" `-` seems like option. `--` to separate options and lhs.
-	Map [n] -noremap    + <C-a>
-	Map [n] -noremap -- - <C-x>
+	" List 'j' mapping in only Normal-mode.
+	Map [n] j
+
+	" List 'j' mappings in Normal-mode, Visual-mode, Operator-pending-mode.
+	Map [nvo] j
+
+	" List 'j' mappings in all modes.
+	Map j
+
+	" List all mappings in all modes.
+	Map
+
+	" List all mappings in Normal-mode.
+	Map [n]
+
 <
 }}}
 ==============================================================================
