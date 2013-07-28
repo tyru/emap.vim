@@ -334,9 +334,11 @@ function! s:parse_modes(q_args) "{{{
     let mode_arg = matchstr(a:q_args, '^\[[^\[\]]\+\]')
     let rest  = strpart(a:q_args, strlen(mode_arg))
     let modes = mode_arg[1:-2]
-    if modes == ''
-        throw s:parse_error("empty mode '[...]' argument")
-    endif
+    " Allow empty mode argument for listing mappings.
+    " (e.g., 'Map j' lists 'j' mappings in all modes)
+    " if modes == ''
+    "     throw s:parse_error("empty mode '[...]' argument")
+    " endif
     return [modes, rest]
 endfunction "}}}
 
