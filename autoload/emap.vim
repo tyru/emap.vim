@@ -36,12 +36,16 @@ endfunction "}}}
 
 function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
     " NOTE: a:mode is only one character.
-    let self.stash[a:mode . a:lhs] =
-    \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
+    for mode in a:mode ==# 'v' ? ['x', 's'] : [a:mode]
+        let self.stash[mode . a:lhs] =
+        \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
+    endfor
 endfunction "}}}
 function! s:map_dict.unmap(mode, map_info_options, lhs) dict "{{{
     " NOTE: a:mode is only one character.
-    unlet self.stash[a:mode . a:lhs]
+    for mode in a:mode ==# 'v' ? ['x', 's'] : [a:mode]
+        unlet self.stash[mode . a:lhs]
+    endfor
 endfunction "}}}
 function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
     " NOTE: This function may be frequently called by :for.
