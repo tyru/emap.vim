@@ -284,7 +284,7 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
             execute command
             " Save this mapping to `a:dict_map`.
             " Because Vim can't look up lhs with <SID> correctly by maparg().
-            if !empty(a:dict_map)
+            if map_info.rhs !=# '' && !empty(a:dict_map)
                 call call(a:dict_map.map, args, a:dict_map)
             endif
         catch
