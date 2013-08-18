@@ -259,6 +259,14 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
         if map_info.lhs !=# ''
             let lhs = {a:convert_lhs_fn}(m, map_info)
         endif
+        if !map_info.options.unique
+        \   && map_info.lhs !=# ''
+        \   && maparg(lhs, m, map_info.options.abbr) !=# ''
+        \   && !empty(a:dict_map)
+            " Will override mappings.
+            " So remove mapping here.
+            call a:dict_map.unmap(m, map_info.options, lhs)
+        endif
         if map_info.rhs ==# ''
             " List mappings.
             let args = [m.(map_info.options.abbr ? 'abbr' : 'map')]
