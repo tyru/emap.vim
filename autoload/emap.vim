@@ -36,15 +36,17 @@ endfunction "}}}
 
 function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
     " NOTE: a:mode is only one character.
+    let abbr = a:map_info_options.abbr
     for mode in a:mode ==# 'v' ? ['x', 's'] : [a:mode]
-        let self.stash[mode . a:lhs] =
+        let self.stash[mode . abbr . a:lhs] =
         \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
     endfor
 endfunction "}}}
 function! s:map_dict.unmap(mode, map_info_options, lhs) dict "{{{
     " NOTE: a:mode is only one character.
+    let abbr = a:map_info_options.abbr
     for mode in a:mode ==# 'v' ? ['x', 's'] : [a:mode]
-        unlet self.stash[mode . a:lhs]
+        unlet self.stash[mode . abbr . a:lhs]
     endfor
 endfunction "}}}
 function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
@@ -57,14 +59,18 @@ function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
     \)
 endfunction "}}}
 
-function! s:map_dict.maparg(lhs, mode) dict "{{{
+function! s:map_dict.maparg(lhs, mode, map_info_options) dict "{{{
     " NOTE: a:mode is only one character.
-    return has_key(self.stash, a:mode . a:lhs) ?
-    \       self.stash[a:mode . a:lhs]._rhs :
-    \      a:mode ==# 'v' && has_key(self.stash, 'x' . a:lhs) ?
-    \       self.stash['x' . a:lhs]._rhs :
-    \      a:mode ==# 'v' && has_key(self.stash, 's' . a:lhs) ?
-    \       self.stash['s' . a:lhs]._rhs :
+    let abbr = a:map_info_options.abbr
+    let key = a:mode . abbr . a:lhs
+    let x_key = 'x' . abbr . a:lhs
+    let s_key = 's' . abbr . a:lhs
+    return has_key(self.stash, key) ?
+    \       self.stash[key]._rhs :
+    \      a:mode ==# 'v' && has_key(self.stash, x_key) ?
+    \       self.stash[x_key]._rhs :
+    \      a:mode ==# 'v' && has_key(self.stash, s_key) ?
+    \       self.stash[s_key]._rhs :
     \       ''
 endfunction "}}}
 " }}}
@@ -222,8 +228,7 @@ function! s:convert_map_lhs(mode, map_info) "{{{
     return s:compile_map(
     \   a:mode,
     \   a:map_info.lhs,
-    \   a:map_info.options,
-    \   s:create_context_from_map_info(a:map_info)
+    \   a:map_info,
     \)
 endfunction "}}}
 
@@ -251,27 +256,26 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
             endif
             continue
         endif
+        if map_info.lhs !=# ''
+            let lhs = {a:convert_lhs_fn}(m, map_info)
+        endif
         if map_info.rhs ==# ''
-            let args = [
-            \   m,
-            \   map_info.options,
-            \   {a:convert_lhs_fn}(m, map_info),
-            \]
+            " List mappings.
             let args = [m.(map_info.options.abbr ? 'abbr' : 'map')]
             let rawopt = s:Mapping.options_dict2raw(map_info.options)
             if rawopt !=# '' | call add(args, rawopt) | endif
             if map_info.lhs !=# ''
-                call add(args, {a:convert_lhs_fn}(m, map_info))
+                call add(args, lhs)
             endif
             let command = join(args)
         else
+            " Make mappings.
             let args = [
             \   m,
             \   map_info.options,
-            \   {a:convert_lhs_fn}(m, map_info),
+            \   lhs,
             \   s:compile_map(
-            \       m, map_info.rhs, map_info.options,
-            \       s:create_context_from_map_info(map_info)),
+            \       m, map_info.rhs, map_info),
             \]
             if map_info.options.abbr
                 let command = call(s:Mapping.get_abbr_command, args, s:Mapping)
@@ -487,18 +491,16 @@ function! emap#compile_map(mode, map) "{{{
     return s:compile_map(a:mode, a:map, {})
 endfunction "}}}
 
-function! s:compile_map(mode, map, options, ...) "{{{
-    let context = a:0 && type(a:1) is type({}) ?
-    \               a:1 : {}
+function! s:compile_map(mode, map, map_info) "{{{
     if a:map == ''
         return ''
     endif
     let keys = s:split_to_keys(a:map)
-    if s:has_pragma(s:pragmas, s:PRAGMA_IGNORE_SPACES, a:options)
+    if s:has_pragma(s:pragmas, s:PRAGMA_IGNORE_SPACES, a:map_info)
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
-    return join(map(keys, 's:eval_special_key(v:val, a:mode, context)'), '')
+    return join(map(keys, 's:eval_special_key(v:val, a:mode, a:map_info)'), '')
 endfunction "}}}
 
 function! s:split_to_keys(map)  "{{{
@@ -509,11 +511,13 @@ function! s:split_to_keys(map)  "{{{
     return split(a:map, '\(<[^<>]\+>\|.\)\zs')
 endfunction "}}}
 
-function! s:eval_special_key(map, mode, context) "{{{
+function! s:eval_special_key(map, mode, map_info) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let map_name = matchstr(a:map, '^<\zs[^<>]\+\ze>$')
-        let named_map_rhs = s:named_map.maparg(s:get_snr_named_lhs(map_name), a:mode)
-        let macro_map_rhs = s:macro_map.maparg(s:get_snr_macro_lhs(map_name), a:mode)
+        let named_map_rhs = s:named_map.maparg(
+        \   s:get_snr_named_lhs(map_name), a:mode, a:map_info.options)
+        let macro_map_rhs = s:macro_map.maparg(
+        \   s:get_snr_macro_lhs(map_name), a:mode, a:map_info.options)
 
         " Assert map_name != ''
 
@@ -522,11 +526,11 @@ function! s:eval_special_key(map, mode, context) "{{{
         if a:map ==# '<SID>'
             return s:vimrc_snr_prefix()
         elseif a:map ==# '<lhs>'
-        \   && has_key(a:context, 'lhs')
-            return a:context.lhs
+        \   && has_key(a:map_info, 'lhs')
+            return a:map_info.lhs
         elseif a:map ==# '<q-lhs>'
-        \   && has_key(a:context, 'lhs')
-            return string(a:context.lhs)
+        \   && has_key(a:map_info, 'lhs')
+            return string(a:map_info.lhs)
         elseif macro_map_rhs != ''
             " Found :DefMacroMap's mapping. Return rhs definition.
             return macro_map_rhs
@@ -563,14 +567,6 @@ endfunction "}}}
 
 function! s:get_snr_named_lhs(map) "{{{
     return s:EMAP_SNR . s:get_named_lhs(a:map)
-endfunction "}}}
-
-function! s:create_context_from_map_info(map_info) "{{{
-    let context = {}
-    if has_key(a:map_info, 'lhs')
-        let context.lhs = a:map_info.lhs
-    endif
-    return context
 endfunction "}}}
 
 
