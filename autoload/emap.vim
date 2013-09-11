@@ -28,55 +28,68 @@ endfunction "}}}
 let s:EMAP_SNR = printf("<SNR>%d_", s:SID())
 
 " s:map_dict {{{
-let s:map_dict = {'stash': {}}
+let s:map_dict = {'stash': {}, 'bufvarname': ''}
 
-function! s:map_dict_new() "{{{
-    return deepcopy(s:map_dict)
+function! s:map_dict_new(bufvarname) "{{{
+    return extend(deepcopy(s:map_dict), {
+    \   'bufvarname': a:bufvarname
+    \})
+endfunction "}}}
+
+function! s:map_dict.get_stash(map_info_options) "{{{
+    if a:map_info_options.buffer
+        let {self.bufvarname} = {}
+        return {self.bufvarname}
+    else
+        return self.stash
+    endif
 endfunction "}}}
 
 function! s:map_dict.map(mode, map_info_options, lhs, rhs) dict "{{{
     " NOTE: a:mode is only one character.
+    let stash = self.get_stash(a:map_info_options)
     let abbr = a:map_info_options.abbr
+    let rhs_info = extend(deepcopy(a:map_info_options), {
+    \   '_rhs': a:rhs,
+    \}, 'keep')
     for mode in a:mode ==# 'v' ? ['x', 's'] : [a:mode]
-        let self.stash[mode . abbr . a:lhs] =
-        \   s:map_dict_create_rhs(a:rhs, a:map_info_options)
+        let stash[mode . abbr . a:lhs] = rhs_info
     endfor
 endfunction "}}}
 function! s:map_dict.unmap(mode, map_info_options, lhs) dict "{{{
-    " NOTE: a:mode is only one character.
+    " NOTE:
+    " * a:mode is only one character.
+    " * Accessing self.bufvarname may cause E716 error.
+    " (Key not present in Dictionary)
+    let stash = self.get_stash(a:map_info_options)
     let abbr = a:map_info_options.abbr
     for mode in a:mode ==# 'v' ? ['x', 's'] : [a:mode]
-        unlet self.stash[mode . abbr . a:lhs]
+        let key = mode . abbr . a:lhs
+        if has_key(stash, key)
+            unlet stash[key]
+        endif
     endfor
-endfunction "}}}
-function! s:map_dict_create_rhs(rhs, map_info_options) "{{{
-    " NOTE: This function may be frequently called by :for.
-    " And `a:map_info_options` may be same object during :for.
-    return extend(
-    \   a:map_info_options,
-    \   {'_rhs': a:rhs},
-    \   'keep',
-    \)
 endfunction "}}}
 
 function! s:map_dict.maparg(lhs, mode, map_info_options) dict "{{{
     " NOTE: a:mode is only one character.
+    let stash = self.get_stash(a:map_info_options)
     let abbr = a:map_info_options.abbr
     let key = a:mode . abbr . a:lhs
     let x_key = 'x' . abbr . a:lhs
     let s_key = 's' . abbr . a:lhs
-    return has_key(self.stash, key) ?
-    \       self.stash[key]._rhs :
-    \      a:mode ==# 'v' && has_key(self.stash, x_key) ?
-    \       self.stash[x_key]._rhs :
-    \      a:mode ==# 'v' && has_key(self.stash, s_key) ?
-    \       self.stash[s_key]._rhs :
+    return has_key(stash, key) ?
+    \       stash[key]._rhs :
+    \      a:mode ==# 'v' && has_key(stash, x_key) ?
+    \       stash[x_key]._rhs :
+    \      a:mode ==# 'v' && has_key(stash, s_key) ?
+    \       stash[s_key]._rhs :
     \       ''
 endfunction "}}}
 " }}}
 
-let s:named_map = {}
-let s:macro_map = {}
+let s:named_map = s:map_dict_new('b:emap_named_map')
+let s:macro_map = s:map_dict_new('b:emap_macro_map')
 " }}}
 
 " Functions {{{
@@ -167,7 +180,6 @@ let s:EX_COMMANDS = {
 " }}}
 function! emap#load(...) "{{{
     call call('emap#define_ex_commands', a:000)
-    call emap#init_map_info()
 endfunction "}}}
 
 function! emap#define_ex_commands(...) "{{{
@@ -201,11 +213,6 @@ function! emap#define_ex_commands(...) "{{{
         \   get(def_names, name, name)
         \   def
     endfor
-endfunction "}}}
-
-function! emap#init_map_info() "{{{
-    let s:named_map = s:map_dict_new()
-    let s:macro_map = s:map_dict_new()
 endfunction "}}}
 
 function! s:cmd_defmacromap(cmdname, q_args, bang) "{{{
