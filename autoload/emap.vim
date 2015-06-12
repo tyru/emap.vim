@@ -236,6 +236,7 @@ function! s:convert_map_lhs(mode, map_info) "{{{
     \   a:mode,
     \   a:map_info.lhs,
     \   a:map_info,
+    \   {'rlhs': 'lhs', 'mode': a:mode},
     \)
 endfunction "}}}
 
@@ -290,7 +291,7 @@ function! s:do_map_command(cmdname, q_args, convert_lhs_fn, dict_map) "{{{
             \   map_info.options,
             \   lhs,
             \   s:compile_map(
-            \       m, map_info.rhs, map_info),
+            \       m, map_info.rhs, map_info, {'rlhs': 'rhs', 'mode': m}),
             \]
             if map_info.options.abbr
                 let command = call(s:Mapping.get_abbr_command, args, s:Mapping)
@@ -503,10 +504,10 @@ function! emap#compile_map(mode, map) "{{{
     " This expands emap notation in a:map to Vim key-notation.
     "
     " NOTE: Pass {} as a:options to let s:has_pragma() return 0.
-    return s:compile_map(a:mode, a:map, {})
+    return s:compile_map(a:mode, a:map, {}, {'rlhs': 'rhs', 'mode': a:mode})
 endfunction "}}}
 
-function! s:compile_map(mode, map, map_info) "{{{
+function! s:compile_map(mode, map, map_info, context) "{{{
     if a:map == ''
         return ''
     endif
@@ -515,7 +516,7 @@ function! s:compile_map(mode, map, map_info) "{{{
         let whitespaces = '^[ \t]\+$'
         let keys = filter(keys, 'v:val !~# whitespaces')
     endif
-    return join(map(keys, 's:eval_special_key(v:val, a:mode, a:map_info)'), '')
+    return join(map(keys, 's:eval_special_key(v:val, a:mode, a:map_info, a:context)'), '')
 endfunction "}}}
 
 function! s:split_to_keys(map)  "{{{
@@ -526,7 +527,7 @@ function! s:split_to_keys(map)  "{{{
     return split(a:map, '\(<[^<>]\+>\|.\)\zs')
 endfunction "}}}
 
-function! s:eval_special_key(map, mode, map_info) "{{{
+function! s:eval_special_key(map, mode, map_info, context) "{{{
     if a:map =~# '^<[^<>]\+>$'
         let map_name = matchstr(a:map, '^<\zs[^<>]\+\ze>$')
         let named_map_rhs = s:named_map.maparg(
@@ -542,10 +543,23 @@ function! s:eval_special_key(map, mode, map_info) "{{{
             return s:vimrc_snr_prefix()
         elseif a:map ==# '<lhs>'
         \   && has_key(a:map_info, 'lhs')
+        \   && a:context.rlhs !=# 'lhs'
             return a:map_info.lhs
         elseif a:map ==# '<q-lhs>'
         \   && has_key(a:map_info, 'lhs')
+        \   && a:context.rlhs !=# 'lhs'
             return string(a:map_info.lhs)
+        elseif a:map ==# '<rhs>'
+        \   && has_key(a:map_info, 'rhs')
+        \   && a:context.rlhs !=# 'rhs'
+            return a:map_info.rhs
+        elseif a:map ==# '<q-rhs>'
+        \   && has_key(a:map_info, 'rhs')
+        \   && a:context.rlhs !=# 'rhs'
+            return string(a:map_info.rhs)
+        elseif a:map ==# '<old-rhs>'
+        \   && has_key(a:map_info, 'lhs')
+            return maparg(a:map_info.lhs, a:context.mode, a:map_info.options.abbr)
         elseif macro_map_rhs != ''
             " Found :DefMacroMap's mapping. Return rhs definition.
             return macro_map_rhs
